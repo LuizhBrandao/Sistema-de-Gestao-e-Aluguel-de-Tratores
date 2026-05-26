@@ -1,0 +1,8 @@
+<Solution>
+  <Project Path="src/TractorRental.Api/TractorRental.Api.csproj" />
+  <Project Path="src/TractorRental.Application/TractorRental.Application.csproj" />
+  <Project Path="src/TractorRental.Domain/TractorRental.Domain.csproj" />
+  <Project Path="src/TractorRental.Infrastructure/TractorRental.Infrastructure.csproj" />
+  <Project Path="src/TractorRental.IoTWorker/TractorRental.IoTWorker.csproj" />
+  <Project Path="tests/TractorRental.UnitTests/TractorRental.UnitTests.csproj" />
+</Solution>
