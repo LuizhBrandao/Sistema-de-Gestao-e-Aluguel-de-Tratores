@@ -1,11 +1,10 @@
-![Desafio Original](<Desafio Analise de projetos com DDD.jpeg>)
 # 🚜 Sistema de Gestão e Aluguel de Tratores (Telemetria IoT & DDD)
 ---
 
 ## 📌 O Desafio (Contexto de Negócio)
 
 ### O Problema
-Uma empresa de engenharia e logística contratou o desenvolvimento de uma plataforma escalável capaz de realizar a gestão completa dos contratos de locação de sua frota de tratores. Simultaneamente, o sistema deve ser capaz de processar um fluxo massivo de informações críticas de telemetria enviadas diretamente por sensores **IoT (Internet of Things)** acoplados aos equipamentos.
+Desenvolvimento de uma plataforma escalável capaz de realizar a gestão completa dos contratos de locação de sua frota de tratores. Simultaneamente, o sistema deve ser capaz de processar um fluxo massivo de informações críticas de telemetria enviadas diretamente por sensores **IoT (Internet of Things)** acoplados aos equipamentos.
 
 Os sensores realizam leituras frequentes de indicadores estruturais:
 * Nível de combustível e nível de óleo;
