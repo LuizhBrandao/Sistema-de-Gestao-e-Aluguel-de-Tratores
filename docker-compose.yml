@@ -1,0 +1,40 @@
+version: '3.8'
+
+services:
+  #  SQL Server (Banco de Dados)
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: tractor_rental_db
+    environment:
+      - ACCEPT_EULA=Y
+      - MSSQL_SA_PASSWORD=TractorRental@2026!
+      - MSSQL_PID=Developer
+    ports:
+      - "1433:1433"
+    volumes:
+      - sqlserver_data:/var/opt/mssql
+    networks:
+      - tractor_network
+    restart: unless-stopped
+
+  #  RabbitMQ (Message Broker / Mensageria)
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: tractor_rental_rabbitmq
+    environment:
+      - RABBITMQ_DEFAULT_USER=guest
+      - RABBITMQ_DEFAULT_PASS=guest
+    ports:
+      - "5672:5672"   # Porta de comunicação da aplicação (AMQP)
+      - "15672:15672" # Porta do painel visual (Management UI)
+    networks:
+      - tractor_network
+    restart: unless-stopped
+
+# Declaração dos volumes e redes
+volumes:
+  sqlserver_data:
+
+networks:
+  tractor_network:
+    driver: bridge
