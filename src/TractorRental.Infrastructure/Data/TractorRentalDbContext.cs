@@ -8,11 +8,12 @@ public class TractorRentalDbContext(DbContextOptions<TractorRentalDbContext> opt
     public DbSet<Trator> Tratores => Set<Trator>();
     public DbSet<ContratoAluguel> ContratosAluguel => Set<ContratoAluguel>();
 
+    // 👇 ADICIONE ESTA LINHA 👇
+    public DbSet<RegistroManutencao> RegistrosManutencao => Set<RegistroManutencao>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        // Alimenta automaticamente os mapeamentos a partir das classes que implementam IEntityTypeConfiguration
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(TractorRentalDbContext).Assembly);
-
         base.OnModelCreating(modelBuilder);
     }
 }

@@ -24,8 +24,12 @@ public class RiscoManutencaoPolicy(
 
                 await repository.AtualizarAsync(trator, cancellationToken);
 
-                // Dispara o novo evento (AlertaGeradoEvent) para que outros módulos (ex: painel web) sejam atualizados
-                foreach (var domainEvent in trator.DomainEvents)
+                // CORREÇÃO: Fazer uma cópia defensiva e limpar a fila ANTES de publicar
+                var eventos = trator.DomainEvents.ToList();
+                trator.LimparEventos();
+
+                // Dispara o novo evento (AlertaGeradoEvent)
+                foreach (var domainEvent in eventos)
                 {
                     await mediator.Publish(domainEvent, cancellationToken);
                 }

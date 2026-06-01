@@ -2,7 +2,8 @@
 
 public enum StatusTrator
 {
-    Operacional,
+    Operacional, // Disponível para aluguel
+    Alugado,
     EmManutencao,
     Inativo
 }

@@ -24,14 +24,15 @@ public class RegistrarTelemetriaCommandHandler(
         await repository.AtualizarAsync(trator, cancellationToken);
 
         // 4. Dispara os eventos de domínio (fatos) gerados pelo Agregado para as Policies escutarem
-        foreach (var domainEvent in trator.DomainEvents)
+        // CORREÇÃO: Fazer uma cópia defensiva e limpar ANTES de publicar
+        var eventos = trator.DomainEvents.ToList();
+        trator.LimparEventos();
+
+        foreach (var domainEvent in eventos)
         {
             // Publish notifica todos os ouvintes desse evento simultaneamente
             await mediator.Publish(domainEvent, cancellationToken);
         }
-
-        // Limpa a fila de eventos após o disparo
-        trator.LimparEventos();
 
         return true;
     }

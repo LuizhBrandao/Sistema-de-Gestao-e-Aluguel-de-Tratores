@@ -10,6 +10,7 @@ namespace TractorRental.Infrastructure;
 
 public static class DependencyInjection
 {
+    // Em TractorRental.Infrastructure/DependencyInjection.cs
     public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
     {
         var connectionString = configuration.GetConnectionString("DefaultConnection");
@@ -19,9 +20,12 @@ public static class DependencyInjection
 
         services.AddScoped<ITratorRepository, TratorRepository>();
 
-        // 🌟 NOVO: Registra o nosso serviço de leitura rápida (Dapper) injetando a Connection String
+        // Adicione esta linha:
+        services.AddScoped<IRegistroManutencaoRepository, RegistroManutencaoRepository>();
+
         services.AddScoped<ITratorQueries>(sp => new TratorQueries(connectionString!));
 
         return services;
     }
+
 }

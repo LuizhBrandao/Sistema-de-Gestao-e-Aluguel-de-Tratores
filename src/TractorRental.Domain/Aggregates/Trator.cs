@@ -25,6 +25,20 @@ public class Trator
         Status = StatusTrator.Operacional;
     }
 
+    public void Alugar()
+    {
+        if (Status != StatusTrator.Operacional)
+            throw new InvalidOperationException("O equipamento só pode ser alugado se estiver com o status Operacional.");
+
+        Status = StatusTrator.Alugado;
+    }
+
+    public void Desalugar()
+    {
+        if (Status == StatusTrator.Alugado)
+            Status = StatusTrator.Operacional;
+    }
+
     // Regra de Negócio: Processa a telemetria que vem do Worker/RabbitMQ
     public void ProcessarLeituraSensores(double temperatura, double pressao, double combustivel)
     {
