@@ -1,7 +1,7 @@
-# 🚜 Sistema de Gestão e Aluguel de Tratores (Telemetria IoT & DDD)
+#  Sistema de Gestão e Aluguel de Tratores (Telemetria IoT & DDD)
 ---
 
-## 📌 O Desafio (Contexto de Negócio)
+##  O Desafio (Contexto de Negócio)
 
 ### O Problema
 Desenvolvimento de uma plataforma escalável capaz de realizar a gestão completa dos contratos de locação de sua frota de tratores. Simultaneamente, o sistema deve ser capaz de processar um fluxo massivo de informações críticas de telemetria enviadas diretamente por sensores **IoT (Internet of Things)** acoplados aos equipamentos.
@@ -19,7 +19,7 @@ Os sensores realizam leituras frequentes de indicadores estruturais:
 
 ---
 
-## 🎯 Objetivos do Projeto
+##  Objetivos do Projeto
 
 Para solucionar a alta complexidade do domínio e os desafios técnicos de concorrência de dados, a modelagem foi segmentada seguindo as etapas táticas do Event Storming:
 1. **Eventos de Domínio:** Mapeamento e descoberta de fatos imutáveis do passado (`ContratoIniciado`, `LeituraDeSensorRecebida`).
@@ -29,7 +29,7 @@ Para solucionar a alta complexidade do domínio e os desafios técnicos de conco
 
 ---
 
-## 🧠 Engenharia de Software: Fluxo de Event Storming
+##  Engenharia de Software: Fluxo de Event Storming
 
 Abaixo está o mapeamento lógico e visual do comportamento da aplicação. O fluxo foi construído utilizando a sintaxe **Mermaid** e é renderizado nativamente pelo GitHub.
 
@@ -68,7 +68,7 @@ flowchart TD
     Evt1 --> Read2
     Read2[(Portal Cliente: Gestão de Contratos e Custos)]:::readmodel
 ````
-## 🎨 Legenda do Modelo de Domínio
+##  Legenda do Modelo de Domínio
 
 🟦 Azul (Command): Uma intenção ou ação direta disparada por um usuário ou sistema externo.
 
@@ -80,7 +80,7 @@ flowchart TD
 
 🟩 Verde (Read Model): Projeções e dashboards otimizados para rápida resposta de leitura.
 
-## 🛠️ Conceitos e Padrões de Arquitetura Praticados
+##  Conceitos e Padrões de Arquitetura Praticados
 
 Domain-Driven Design (DDD): Foco estratégico nas regras de negócio da aplicação, permitindo o isolamento de contextos delimitados (Bounded Contexts) para Contratos e Telemetria.
 
