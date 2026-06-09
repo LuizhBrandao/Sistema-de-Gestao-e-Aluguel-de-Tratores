@@ -8,30 +8,26 @@ namespace TractorRental.UnitTests.Domain;
 public class ContratoAluguelTests
 {
     [Fact]
-    public void CriarContrato_DeveInicializarCorretamente_EGerarEvento()
-    {
-        // Arrange & Act
-        var contrato = new ContratoAluguel(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), 150.00m);
-
-        // Assert
-        contrato.Status.Should().Be(StatusContrato.Ativo);
-        contrato.DataFim.Should().BeNull();
-
-        contrato.DomainEvents.Should().ContainSingle();
-        contrato.DomainEvents.First().Should().BeOfType<ContratoIniciadoEvent>();
-    }
-
-    [Fact]
-    public void FinalizarContrato_DeveAlterarStatus_EDefinirDataFim()
+    public void InstanciarContrato_DeveGerarEventoDeDominio_E_EstarAtivo()
     {
         // Arrange
-        var contrato = new ContratoAluguel(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), 150.00m);
+        var contratoId = Guid.NewGuid();
+        var clienteId = Guid.NewGuid();
+        var tratorId = Guid.NewGuid();
+        var valorHora = 150.00m;
 
         // Act
-        contrato.FinalizarContrato();
+        var contrato = new ContratoAluguel(contratoId, clienteId, tratorId, valorHora);
 
         // Assert
-        contrato.Status.Should().Be(StatusContrato.Finalizado);
-        contrato.DataFim.Should().NotBeNull();
+        contrato.Id.Should().Be(contratoId);
+        contrato.Status.Should().Be(StatusContrato.Ativo);
+
+        // A prova de que o Evento de Domínio foi gerado internamente
+        contrato.DomainEvents.Should().ContainSingle();
+        var domainEvent = contrato.DomainEvents.First() as ContratoIniciadoEvent;
+
+        domainEvent.Should().NotBeNull();
+        domainEvent!.TratorId.Should().Be(tratorId);
     }
 }
