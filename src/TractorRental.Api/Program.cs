@@ -1,7 +1,7 @@
 using MassTransit;
-using TractorRental.Api.Consumers; // <-- Novo
+using TractorRental.Api.Consumers; 
 using TractorRental.Api.Endpoints;
-using TractorRental.Api.Hubs; // <-- Novo
+using TractorRental.Api.Hubs; 
 using TractorRental.Api.Services;
 using TractorRental.Application.Commands;
 using TractorRental.Infrastructure;
@@ -46,7 +46,11 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+// As nossas 3 "gavetas" de endpoints organizadas 
 app.MapTratorEndpoints();
+app.MapClienteEndpoints();   
+app.MapContratoEndpoints();  
 
 // 3. Mapeia a URL do SignalR
 app.MapHub<MonitoramentoHub>("/hubs/monitoramento");
