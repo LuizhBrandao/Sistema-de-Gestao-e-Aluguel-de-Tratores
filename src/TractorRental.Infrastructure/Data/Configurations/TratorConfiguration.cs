@@ -21,6 +21,11 @@ public class TratorConfiguration : IEntityTypeConfiguration<Trator>
             .HasConversion<string>()
             .IsRequired();
 
+        //  Mapeamento explícito das novas propriedades 
+        builder.Property(t => t.NivelOleo).IsRequired();
+        builder.Property(t => t.RotacaoMotor).IsRequired();
+        builder.Property(t => t.Velocidade).IsRequired();
+
         // IMPORTANTE: Ignora a lista de eventos de domínio na persistência
         builder.Ignore(t => t.DomainEvents);
     }

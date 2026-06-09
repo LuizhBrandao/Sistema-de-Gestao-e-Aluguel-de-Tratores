@@ -47,7 +47,10 @@ public static class TratorEndpoints
                 request.TratorId,
                 request.TemperaturaMotor,
                 request.PressaoPneus,
-                request.NivelCombustivel
+                request.NivelCombustivel,
+                request.NivelOleo,      // <- Novo
+                request.RotacaoMotor,   // <- Novo
+                request.Velocidade      // <- Novo
             );
 
             // O MediatR roteia para o Handler, que carrega o Agregado, valida e salva no banco
@@ -64,4 +67,4 @@ public static class TratorEndpoints
 
 // DTOs (Records são perfeitos para mapear o JSON de entrada de forma imutável)
 public record CriarTratorRequest(string Modelo);
-public record TelemetriaRequest(Guid TratorId, double TemperaturaMotor, double PressaoPneus, double NivelCombustivel);
+public record TelemetriaRequest(Guid TratorId, double TemperaturaMotor, double PressaoPneus, double NivelCombustivel, double NivelOleo, double RotacaoMotor, double Velocidade);

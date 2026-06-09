@@ -20,7 +20,10 @@ public class TratorQueries(string connectionString) : ITratorQueries
                 Status, 
                 TemperaturaAtualMotor, 
                 PressaoAtualPneus, 
-                NivelCombustivel
+                NivelCombustivel,
+                NivelOleo,        
+                RotacaoMotor,     
+                Velocidade        
             FROM Tratores
             ORDER BY Status DESC, Modelo ASC";
 

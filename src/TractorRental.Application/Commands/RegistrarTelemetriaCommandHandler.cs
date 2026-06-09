@@ -18,7 +18,14 @@ public class RegistrarTelemetriaCommandHandler(
             return false;
 
         // 2. Delega a regra de negócio para o Agregado (DDD puro)
-        trator.ProcessarLeituraSensores(request.TemperaturaMotor, request.PressaoPneus, request.NivelCombustivel);
+        trator.ProcessarLeituraSensores(
+            request.TemperaturaMotor,
+            request.PressaoPneus,
+            request.NivelCombustivel,
+            request.NivelOleo,      // Passando o Óleo
+            request.RotacaoMotor,   // Passando o RPM
+            request.Velocidade      // Passando a Velocidade
+        );
 
         // 3. Persiste o novo estado
         await repository.AtualizarAsync(trator, cancellationToken);

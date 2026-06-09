@@ -15,7 +15,7 @@ public class TratorTests
         var trator = new Trator(Guid.NewGuid(), "John Deere 8R");
 
         // Act
-        trator.ProcessarLeituraSensores(90.5, 32.0, 50.0);
+        trator.ProcessarLeituraSensores(90.5, 32.0, 50.0, 85.0, 1500.0, 15.0);
 
         // Assert
         trator.TemperaturaAtualMotor.Should().Be(90.5);

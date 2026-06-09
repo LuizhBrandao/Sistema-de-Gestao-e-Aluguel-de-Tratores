@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using TractorRental.Infrastructure.Data;
 
@@ -11,9 +12,11 @@ using TractorRental.Infrastructure.Data;
 namespace TractorRental.Infrastructure.Migrations
 {
     [DbContext(typeof(TractorRentalDbContext))]
-    partial class TractorRentalDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260609135537_AddNovosSensores")]
+    partial class AddNovosSensores
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

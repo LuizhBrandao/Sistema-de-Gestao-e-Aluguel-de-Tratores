@@ -33,7 +33,7 @@ public class RiscoManutencaoPolicyTests
             .ReturnsAsync(trator);
 
         // Temperatura acima de 110.0 (regra crítica)
-        var eventoLeitura = new LeituraRecebidaEvent(tratorId, 115.0, 30.0, 80.0, DateTime.UtcNow);
+        var eventoLeitura = new LeituraRecebidaEvent(tratorId, 115.0, 30.0, 80.0, 80.0, 2000.0, 10.0, DateTime.UtcNow);
 
         // Act
         await _policy.Handle(eventoLeitura, CancellationToken.None);
@@ -47,7 +47,7 @@ public class RiscoManutencaoPolicyTests
     public async Task Handle_TemperaturaNormal_NaoDeveFazerNada()
     {
         // Arrange
-        var eventoLeitura = new LeituraRecebidaEvent(Guid.NewGuid(), 90.0, 30.0, 80.0, DateTime.UtcNow);
+        var eventoLeitura = new LeituraRecebidaEvent(Guid.NewGuid(), 90.0, 30.0, 80.0, 85.0, 1500.0, 20.0, DateTime.UtcNow);
 
         // Act
         await _policy.Handle(eventoLeitura, CancellationToken.None);

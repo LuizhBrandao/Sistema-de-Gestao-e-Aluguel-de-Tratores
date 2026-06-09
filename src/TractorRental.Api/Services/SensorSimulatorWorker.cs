@@ -28,13 +28,15 @@ public class SensorSimulatorWorker(
                 {
                     var random = new Random();
 
-                    // 🌟 CORREÇÃO: Agora usamos o nosso tipo concreto em vez de um tipo anônimo
                     var telemetria = new TelemetriaMessage(
-                        trator.Id,
-                        80.0 + (random.NextDouble() * 40.0),
-                        30.0 + (random.NextDouble() * 5.0),
-                        random.Next(10, 100)
-                    );
+                    trator.Id,
+                    80.0 + (random.NextDouble() * 35.0), // Temp normal até 115
+                    25.0 + (random.NextDouble() * 10.0), // Pressão entre 25 (crítico) e 35
+                    random.Next(5, 100),                 // Combustível
+                    10.0 + (random.NextDouble() * 90.0), // Óleo (pode cair pra 10%)
+                    random.Next(800, 4000),              // RPM
+                    random.Next(0, 40)                   // Velocidade (Tratores são lentos)
+);
 
                     await bus.Publish(telemetria);
 
