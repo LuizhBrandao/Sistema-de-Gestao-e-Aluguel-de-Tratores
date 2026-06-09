@@ -5,6 +5,8 @@ using TractorRental.Api.Hubs;
 using TractorRental.Api.Services;
 using TractorRental.Application.Commands;
 using TractorRental.Infrastructure;
+using Microsoft.EntityFrameworkCore;
+using TractorRental.Infrastructure.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -22,7 +24,10 @@ builder.Services.AddMassTransit(x =>
 
     x.UsingRabbitMq((context, cfg) =>
     {
-        cfg.Host("localhost", "/", h => {
+        // Lê da variável de ambiente ou usa localhost
+        var rabbitHost = builder.Configuration["RabbitHost"] ?? "localhost";
+
+        cfg.Host(rabbitHost, "/", h => {
             h.Username("guest");
             h.Password("guest");
         });
@@ -166,5 +171,12 @@ app.MapGet("/portal", () => Results.Content(@"
 </body>
 </html>
 ", "text/html")).ExcludeFromDescription();
+
+// Executa as Migrations automaticamente ao subir a API
+using (var scope = app.Services.CreateScope())
+{
+    var dbContext = scope.ServiceProvider.GetRequiredService<TractorRentalDbContext>();
+    dbContext.Database.Migrate();
+}
 
 app.Run();
