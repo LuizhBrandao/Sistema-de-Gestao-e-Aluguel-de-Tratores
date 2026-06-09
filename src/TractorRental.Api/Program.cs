@@ -101,4 +101,70 @@ app.MapGet("/painel", () => Results.Content(@"
 </html>
 ", "text/html")).ExcludeFromDescription();
 
+// 5. Portal Administrativo (O "Front" do Fullstack)
+app.MapGet("/portal", () => Results.Content(@"
+<!DOCTYPE html>
+<html lang='pt-BR'>
+<head>
+    <meta charset='UTF-8'>
+    <title>Portal Admin - Frota 🚜</title>
+    <link href='https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css' rel='stylesheet'>
+    <style>
+        body { background-color: #f8f9fa; padding: 20px; }
+        .card-trator { transition: transform 0.2s; }
+        .card-trator:hover { transform: scale(1.02); }
+        .status-Operacional { color: #198754; font-weight: bold; }
+        .status-Alugado { color: #0dcaf0; font-weight: bold; }
+        .status-EmManutencao { color: #dc3545; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class='container'>
+        <h2 class='mb-4'>Dashboard da Frota</h2>
+        <div class='row' id='frota-container'>
+            </div>
+    </div>
+
+    <script>
+        // Consome a sua API (Dapper) assim que a tela abre
+        fetch('/api/tratores/dashboard')
+            .then(response => response.json())
+            .then(tratores => {
+                const container = document.getElementById('frota-container');
+                
+                if(tratores.length === 0) {
+                    container.innerHTML = '<p>Nenhum trator cadastrado na base de dados.</p>';
+                    return;
+                }
+
+                tratores.forEach(t => {
+                    const card = document.createElement('div');
+                    card.className = 'col-md-4 mb-4';
+                    
+                    // Formata as métricas
+                    const temp = Number(t.temperaturaAtualMotor).toFixed(1);
+                    const pressao = Number(t.pressaoAtualPneus).toFixed(1);
+                    const oleo = Number(t.nivelOleo).toFixed(1);
+
+                    card.innerHTML = `
+                        <div class='card shadow-sm card-trator'>
+                            <div class='card-body'>
+                                <h5 class='card-title'>🚜 ${t.modelo}</h5>
+                                <p class='card-text status-${t.status}'>Status: ${t.status}</p>
+                                <hr>
+                                <p class='mb-1'><strong>Temperatura:</strong> ${temp} ºC</p>
+                                <p class='mb-1'><strong>Pressão Pneus:</strong> ${pressao} PSI</p>
+                                <p class='mb-1'><strong>Nível Óleo:</strong> ${oleo}%</p>
+                                <p class='mb-0'><strong>RPM:</strong> ${t.rotacaoMotor} | <strong>Velocidade:</strong> ${t.velocidade} km/h</p>
+                            </div>
+                        </div>
+                    `;
+                    container.appendChild(card);
+                });
+            });
+    </script>
+</body>
+</html>
+", "text/html")).ExcludeFromDescription();
+
 app.Run();
