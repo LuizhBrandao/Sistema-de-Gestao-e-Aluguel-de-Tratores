@@ -31,7 +31,7 @@ public class RegistrarTelemetriaCommandHandlerTests
         _repositoryMock.Setup(r => r.ObterPorIdAsync(tratorId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(trator);
 
-        var command = new RegistrarTelemetriaCommand(tratorId, 95.0, 30.0, 80.0);
+        var command = new RegistrarTelemetriaCommand(tratorId, 95.0, 30.0, 80.0, 85.0, 1500.0, 20.0);
 
         // Act
         var result = await _handler.Handle(command, CancellationToken.None);
@@ -41,7 +41,12 @@ public class RegistrarTelemetriaCommandHandlerTests
         trator.TemperaturaAtualMotor.Should().Be(95.0);
 
         _repositoryMock.Verify(r => r.AtualizarAsync(trator, It.IsAny<CancellationToken>()), Times.Once);
+<<<<<<< HEAD
         _mediatorMock.Verify(m => m.Publish(It.IsAny<object>(), It.IsAny<CancellationToken>()), Times.Once);
+=======
+        // Apague a linha que está dando erro e coloque esta:
+        _mediatorMock.Verify(m => m.Publish(It.Is<object>(e => e is TractorRental.Domain.Events.LeituraRecebidaEvent), It.IsAny<CancellationToken>()), Times.Once);
+>>>>>>> 8e0d6d9e8781febc2de2e6bd4ab63041d945357e
         trator.DomainEvents.Should().BeEmpty(); // Validando se o handler chamou o LimparEventos()
     }
 
@@ -52,7 +57,7 @@ public class RegistrarTelemetriaCommandHandlerTests
         _repositoryMock.Setup(r => r.ObterPorIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((Trator?)null);
 
-        var command = new RegistrarTelemetriaCommand(Guid.NewGuid(), 95.0, 30.0, 80.0);
+        var command = new RegistrarTelemetriaCommand(Guid.NewGuid(), 95.0, 30.0, 80.0, 85.0, 1500.0, 20.0);
 
         // Act
         var result = await _handler.Handle(command, CancellationToken.None);

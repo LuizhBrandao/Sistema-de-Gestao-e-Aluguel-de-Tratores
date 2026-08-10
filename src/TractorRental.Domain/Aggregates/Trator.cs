@@ -10,6 +10,9 @@ public class Trator
     public double TemperaturaAtualMotor { get; private set; }
     public double PressaoAtualPneus { get; private set; }
     public double NivelCombustivel { get; private set; }
+    public double NivelOleo { get; private set; }
+    public double RotacaoMotor { get; private set; } // RPM
+    public double Velocidade { get; private set; }
     public StatusTrator Status { get; private set; }
 
     // Lista para acumular eventos disparados pela entidade
@@ -40,13 +43,16 @@ public class Trator
     }
 
     // Regra de Negócio: Processa a telemetria que vem do Worker/RabbitMQ
-    public void ProcessarLeituraSensores(double temperatura, double pressao, double combustivel)
+    public void ProcessarLeituraSensores(double temperatura, double pressao, double combustivel, double oleo, double rotacao, double velocidade)
     {
         TemperaturaAtualMotor = temperatura;
         PressaoAtualPneus = pressao;
         NivelCombustivel = combustivel;
+        NivelOleo = oleo;
+        RotacaoMotor = rotacao;
+        Velocidade = velocidade;
 
-        _domainEvents.Add(new LeituraRecebidaEvent(Id, temperatura, pressao, combustivel, DateTime.UtcNow));
+        _domainEvents.Add(new LeituraRecebidaEvent(Id, temperatura, pressao, combustivel, oleo, rotacao, velocidade, DateTime.UtcNow));
     }
 
     // Regra de Negócio: Alerta de risco (Policy)

@@ -1,40 +1,52 @@
 ﻿using MediatR;
 using TractorRental.Application.Interfaces;
 using TractorRental.Domain.Events;
-using TractorRental.Domain.Aggregates;
 
 namespace TractorRental.Application.Policies;
 
-// INotificationHandler diz que esta classe reage a um evento específico
 public class RiscoManutencaoPolicy(
     ITratorRepository repository,
     IMediator mediator) : INotificationHandler<LeituraRecebidaEvent>
 {
     public async Task Handle(LeituraRecebidaEvent notification, CancellationToken cancellationToken)
     {
-        // Regra de Negócio Crítica: O motor está superaquecendo?
+        // Centralizamos TODAS as regras de negócio aqui (Blindando o Domínio)
+        var falhas = new List<string>();
+
         if (notification.TemperaturaMotor > 110.0)
+            falhas.Add($"Motor superaquecendo ({notification.TemperaturaMotor:F1}°C)");
+
+        if (notification.PressaoPneus < 26.0)
+            falhas.Add($"Pressão baixa ({notification.PressaoPneus:F1} PSI)");
+
+        if (notification.NivelOleo < 15.0)
+            falhas.Add($"Óleo crítico ({notification.NivelOleo:F1}%)");
+
+        if (notification.RotacaoMotor > 3500 && notification.Velocidade < 10)
+            falhas.Add("Falha na transmissão (RPM alto)");
+
+        // Se o domínio detectou qualquer anomalia física, bloqueia o trator
+        if (falhas.Any())
         {
             var trator = await repository.ObterPorIdAsync(notification.TratorId, cancellationToken);
 
             if (trator is not null)
             {
-                // Dispara a ação de negócio no agregado para gerar o alerta e mudar o status
-                trator.RegistrarAlertaManutencao("Risco Crítico: Temperatura do motor excedeu 110°C");
+                var motivoUnificado = string.Join(" | ", falhas);
+
+                // Altera o status para EmManutencao e gera o AlertaGeradoEvent
+                trator.RegistrarAlertaManutencao($"Risco Crítico: {motivoUnificado}");
 
                 await repository.AtualizarAsync(trator, cancellationToken);
 
-                // CORREÇÃO: Fazer uma cópia defensiva e limpar a fila ANTES de publicar
+                // Dispara para a GravarHistoricoManutencaoPolicy salvar no banco
                 var eventos = trator.DomainEvents.ToList();
                 trator.LimparEventos();
 
-                // Dispara o novo evento (AlertaGeradoEvent)
                 foreach (var domainEvent in eventos)
                 {
                     await mediator.Publish(domainEvent, cancellationToken);
                 }
-
-                trator.LimparEventos();
             }
         }
     }

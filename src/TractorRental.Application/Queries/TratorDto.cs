@@ -7,5 +7,8 @@ public record TratorDto(
     string Status,
     double TemperaturaAtualMotor,
     double PressaoAtualPneus,
-    double NivelCombustivel
+    double NivelCombustivel,
+    double NivelOleo,
+    double RotacaoMotor,
+    double Velocidade
 );

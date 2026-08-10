@@ -7,6 +7,9 @@ public record LeituraRecebidaEvent(
     double TemperaturaMotor,
     double PressaoPneus,
     double NivelCombustivel,
+    double NivelOleo,
+    double RotacaoMotor,
+    double Velocidade,
     DateTime Timestamp
 ) : INotification;
 

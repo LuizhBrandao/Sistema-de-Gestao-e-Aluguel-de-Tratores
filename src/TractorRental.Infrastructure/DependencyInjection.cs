@@ -20,10 +20,11 @@ public static class DependencyInjection
 
         services.AddScoped<ITratorRepository, TratorRepository>();
 
-        // Adicione esta linha:
         services.AddScoped<IRegistroManutencaoRepository, RegistroManutencaoRepository>();
 
         services.AddScoped<ITratorQueries>(sp => new TratorQueries(connectionString!));
+
+        services.AddScoped<IClienteRepository, ClienteRepository>();
 
         return services;
     }

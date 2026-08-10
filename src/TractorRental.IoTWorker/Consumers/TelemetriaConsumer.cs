@@ -19,10 +19,16 @@ public class TelemetriaConsumer(
 
         try
         {
-            // 2. TENTA SALVAR NO BANCO
+            // Passo 2. TENTA SALVAR NO BANCO
             var command = new RegistrarTelemetriaCommand(
-                mensagem.TratorId, mensagem.TemperaturaMotor,
-                mensagem.PressaoPneus, mensagem.NivelCombustivel);
+                mensagem.TratorId,
+                mensagem.TemperaturaMotor,
+                mensagem.PressaoPneus,
+                mensagem.NivelCombustivel,
+                mensagem.NivelOleo,
+                mensagem.RotacaoMotor,
+                mensagem.Velocidade
+            );
 
             var sucesso = await mediator.Send(command);
 
@@ -35,18 +41,33 @@ public class TelemetriaConsumer(
                 logger.LogWarning("⚠️ Falha ao salvar telemetria no banco (Regra de negócio impediu).");
             }
 
-            // 3. O ALERTA É INDEPENDENTE: Se a temperatura for alta, dispara o alerta AGORA
-            // (Mesmo que o banco tenha falhado, a sirene tem que tocar!)
-            if (mensagem.TemperaturaMotor >= 110.0)
+            // 3. O ALERTA É INDEPENDENTE: Valida TODOS os sensores para o Painel em Tempo Real
+            var alertas = new List<string>();
+
+            if (mensagem.TemperaturaMotor > 110.0)
+                alertas.Add($"Motor superaquecendo");
+
+            if (mensagem.PressaoPneus < 26.0)
+                alertas.Add($"Pressão dos pneus baixa ({mensagem.PressaoPneus:F1} PSI)");
+
+            if (mensagem.NivelOleo < 15.0)
+                alertas.Add($"Óleo crítico ({mensagem.NivelOleo:F1}%)");
+
+            if (mensagem.RotacaoMotor > 3500 && mensagem.Velocidade < 10)
+                alertas.Add("Falha na transmissão (RPM muito alto)");
+
+            // Se existir pelo menos um alerta, dispara para o frontend!
+            if (alertas.Any())
             {
-                logger.LogWarning("🔥 Temperatura Crítica ({Temp:F1}ºC)! Disparando alerta via RabbitMQ...", mensagem.TemperaturaMotor);
+                var mensagemUnificada = string.Join(" | ", alertas);
+                logger.LogWarning("🔥 Anomalia múltipla detectada! Disparando alerta via RabbitMQ...");
 
                 var endpoint = await context.GetSendEndpoint(new Uri("queue:alertas-frontend"));
 
                 await endpoint.Send(new AlertaCriticoMessage(
                     mensagem.TratorId,
-                    mensagem.TemperaturaMotor,
-                    "ATENÇÃO: Risco de superaquecimento do motor!"
+                    mensagem.TemperaturaMotor, // Mantemos a temperatura para o ecrã não dar erro
+                    mensagemUnificada          // A nova mensagem com todos os defeitos juntos!
                 ));
             }
         }
