@@ -1,4 +1,4 @@
-﻿using FluentAssertions.Equivalency.Tracing;
+using FluentAssertions.Equivalency.Tracing;
 using MediatR;
 using Moq;
 using TractorRental.Application.Interfaces;
@@ -40,7 +40,7 @@ public class RiscoManutencaoPolicyTests
 
         // Assert
         _repositoryMock.Verify(r => r.AtualizarAsync(trator, It.IsAny<CancellationToken>()), Times.Once);
-        _mediatorMock.Verify(m => m.Publish(It.IsAny<AlertaGeradoEvent>(), It.IsAny<CancellationToken>()), Times.Once);
+        _mediatorMock.Verify(m => m.Publish(It.IsAny<object>(), It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]

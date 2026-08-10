@@ -87,3 +87,31 @@ Domain-Driven Design (DDD): Foco estratégico nas regras de negócio da aplicaç
 Event-Driven Architecture (EDA): Modelagem focada em fluxos de eventos para suportar alta escalabilidade e desacoplamento na recepção contínua de sinais de IoT.
 
 CQRS (Command Query Responsibility Segregation): Estrutura conceitual voltada à separação completa de fluxos de modificação de dados (comandos dos sensores) e fluxos analíticos de exibição (consultas de painéis e extratos de custo dinâmicos).
+
+---
+
+## 🚀 Como Rodar o Projeto (Ambiente Local)
+
+Este projeto foi containerizado para garantir que **qualquer avaliador técnico** consiga rodá-lo localmente com facilidade, sem instalar SDKs do .NET ou Node.js.
+
+### Pré-requisitos
+- **Docker** e **Docker Compose** instalados na sua máquina.
+
+### Passo a Passo
+
+1. Clone o repositório e navegue até a pasta raiz do projeto.
+2. No terminal, execute o seguinte comando para construir as imagens e subir a arquitetura completa:
+   ```bash
+   docker-compose up -d --build
+   ```
+3. Aguarde alguns segundos para os serviços subirem. O Docker Compose iniciará:
+   * **SQL Server** (Banco de dados).
+   * **RabbitMQ** (Mensageria e eventos).
+   * **TractorRental.Api** (Backend principal na porta `5000`).
+   * **TractorRental.IoTWorker** (Simulador de sensores IoT gerando telemetria em background).
+   * **TractorRental.Frontend** (Dashboard Web UI responsiva).
+
+4. Acesse o Frontend no seu navegador:
+   🔗 **http://localhost:80**
+
+Lá você poderá visualizar em **Tempo Real** os tratores recebendo telemetria via WebSocket (SignalR), alertas sendo gerados baseados em políticas de domínio, e gestão visual dos contratos de aluguel.

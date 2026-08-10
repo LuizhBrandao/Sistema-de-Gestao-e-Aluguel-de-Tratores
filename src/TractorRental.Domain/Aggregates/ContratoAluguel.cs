@@ -1,4 +1,4 @@
-﻿using TractorRental.Domain.Enums;
+using TractorRental.Domain.Enums;
 using TractorRental.Domain.Events;
 
 namespace TractorRental.Domain.Aggregates;
@@ -32,8 +32,20 @@ public class ContratoAluguel
 
     public void FinalizarContrato()
     {
+        if (Status == StatusContrato.Finalizado)
+            throw new InvalidOperationException("Contrato já está finalizado.");
+            
         Status = StatusContrato.Finalizado;
         DataFim = DateTime.UtcNow;
+    }
+
+    public decimal CalcularFaturamento(DateTime instante)
+    {
+        var fim = DataFim ?? instante;
+        if (fim < DataInicio) return 0;
+        
+        var totalHoras = (fim - DataInicio).TotalHours;
+        return (decimal)totalHoras * ValorHora;
     }
 
     public void LimparEventos() => _domainEvents.Clear();

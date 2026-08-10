@@ -2,7 +2,6 @@ using MassTransit;
 using TractorRental.Api.Consumers; // <-- Novo
 using TractorRental.Api.Endpoints;
 using TractorRental.Api.Hubs; // <-- Novo
-using TractorRental.Api.Services;
 using TractorRental.Application.Commands;
 using TractorRental.Infrastructure;
 
@@ -11,6 +10,18 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddOpenApi();
 builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(RegistrarTelemetriaCommand).Assembly));
+
+// CORS Configuration
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("CorsPolicy", policy =>
+    {
+        policy.WithOrigins("http://localhost:5173", "http://127.0.0.1:5173", "http://localhost") // Added http://localhost for Docker Nginx
+              .AllowAnyHeader()
+              .AllowAnyMethod()
+              .AllowCredentials(); // Required for SignalR
+    });
+});
 
 // 1. Adiciona os serviços do SignalR no contêiner
 builder.Services.AddSignalR();
@@ -35,7 +46,6 @@ builder.Services.AddMassTransit(x =>
     });
 });
 
-builder.Services.AddHostedService<SensorSimulatorWorker>();
 
 var app = builder.Build();
 
@@ -46,55 +56,11 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseCors("CorsPolicy");
 app.MapTratorEndpoints();
 
 // 3. Mapeia a URL do SignalR
 app.MapHub<MonitoramentoHub>("/hubs/monitoramento");
 
-// 4. Cria uma interface visual rápida para testarmos o Tempo Real
-app.MapGet("/painel", () => Results.Content(@"
-<!DOCTYPE html>
-<html lang='pt-BR'>
-<head>
-    <meta charset='UTF-8'>
-    <title>Painel de Monitoramento 🚜</title>
-    <style>
-        body { font-family: Arial; background-color: #1e1e1e; color: #fff; padding: 20px; }
-        .alerta { background-color: #ff4c4c; padding: 15px; margin: 10px 0; border-radius: 5px; font-weight: bold; }
-    </style>
-    <script src='https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js'></script>
-</head>
-<body>
-    <h1>Painel de Alertas (v2)</h1>
-    <p>Aguardando eventos dos tratores...</p>
-    <div id='alertas-container'></div>
-
-    <script>
-        const conn = new signalR.HubConnectionBuilder().withUrl('/hubs/monitoramento').build();
-
-        conn.on('ReceberAlerta', (alerta) => {
-            console.log('ALERTA RECEBIDO DO SIGNALR:', alerta); 
-            
-            // Pega os valores exatamente como o SignalR enviou (minúsculo)
-            const temp = alerta.temperatura;
-            const msg = alerta.mensagem;
-            const trator = alerta.tratorId;
-
-            // Garantia extra: Só chama o toFixed se temp for realmente um número
-            const tempFormatada = temp ? Number(temp).toFixed(1) : 'Erro na leitura';
-
-            const div = document.createElement('div');
-            div.className = 'alerta';
-            div.innerText = `🔥 ${msg} | Trator: ${trator} | Temp: ${tempFormatada}ºC`;
-            
-            const container = document.getElementById('alertas-container');
-            container.insertBefore(div, container.firstChild);
-        });
-
-        conn.start().then(() => console.log('Conectado ao SignalR com sucesso!'));
-    </script>
-</body>
-</html>
-", "text/html")).ExcludeFromDescription();
 
 app.Run();

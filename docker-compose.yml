@@ -1,7 +1,7 @@
 version: '3.8'
 
 services:
-  #  SQL Server (Banco de Dados)
+  # Banco de Dados
   sqlserver:
     image: mcr.microsoft.com/mssql/server:2022-latest
     container_name: tractor_rental_db
@@ -16,8 +16,13 @@ services:
     networks:
       - tractor_network
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P 'TractorRental@2026!' -Q 'SELECT 1' -No"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
-  #  RabbitMQ (Message Broker / Mensageria)
+  # Message Broker
   rabbitmq:
     image: rabbitmq:3-management
     container_name: tractor_rental_rabbitmq
@@ -25,13 +30,66 @@ services:
       - RABBITMQ_DEFAULT_USER=guest
       - RABBITMQ_DEFAULT_PASS=guest
     ports:
-      - "5672:5672"   # Porta de comunicação da aplicação (AMQP)
-      - "15672:15672" # Porta do painel visual (Management UI)
+      - "5672:5672"
+      - "15672:15672"
     networks:
       - tractor_network
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "check_port_connectivity"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
-# Declaração dos volumes e redes
+  # Backend API
+  api:
+    build: 
+      context: .
+      dockerfile: src/TractorRental.Api/Dockerfile
+    container_name: tractor_rental_api
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    ports:
+      - "5000:8080"
+    networks:
+      - tractor_network
+    environment:
+      - ConnectionStrings__DefaultConnection=Server=sqlserver;Database=TractorRental;User Id=sa;Password=TractorRental@2026!;TrustServerCertificate=True;
+      - ASPNETCORE_ENVIRONMENT=Development
+
+  # IoT Telemetry Worker
+  iotworker:
+    build:
+      context: .
+      dockerfile: src/TractorRental.IoTWorker/Dockerfile
+    container_name: tractor_rental_iotworker
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      api:
+        condition: service_started
+    networks:
+      - tractor_network
+    environment:
+      - ConnectionStrings__DefaultConnection=Server=sqlserver;Database=TractorRental;User Id=sa;Password=TractorRental@2026!;TrustServerCertificate=True;
+      - DOTNET_ENVIRONMENT=Development
+
+  # Frontend Web App
+  frontend:
+    build:
+      context: src/TractorRental.Frontend
+      dockerfile: Dockerfile
+    container_name: tractor_rental_frontend
+    ports:
+      - "80:80"
+    networks:
+      - tractor_network
+
 volumes:
   sqlserver_data:
 
