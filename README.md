@@ -18,10 +18,10 @@
 
 </div>
 
-# 🚜 Sistema de Gestão e Aluguel de Tratores (Telemetria IoT & DDD)
+#  Sistema de Gestão e Aluguel de Tratores (Telemetria IoT & DDD)
 ---
 
-## 🎯 O Desafio (Contexto de Negócio)
+##  O Desafio (Contexto de Negócio)
 
 Desenvolvimento de uma plataforma escalável capaz de realizar a gestão completa dos contratos de locação de uma frota de tratores. Simultaneamente, o sistema deve ser capaz de processar um fluxo massivo de informações críticas de telemetria enviadas diretamente por sensores **IoT (Internet of Things)** acoplados aos equipamentos.
 
@@ -38,7 +38,7 @@ Os sensores realizam leituras frequentes de indicadores como:
 
 ---
 
-## 🚀 Como Rodar o Projeto (Ambiente Local)
+##  Como Rodar o Projeto (Ambiente Local)
 
 Este projeto foi containerizado para garantir que **qualquer avaliador técnico** consiga rodá-lo localmente com facilidade, sem a necessidade de instalar SDKs do .NET ou Node.js.
 
@@ -66,13 +66,13 @@ Este projeto foi containerizado para garantir que **qualquer avaliador técnico*
    * **Frontend Web App (React + Vite)** (Na porta `80`).
 
 4. **Acesse o Dashboard no seu navegador:**
-   🔗 **http://localhost:80**
+    **http://localhost:80**
 
 Lá você poderá visualizar o **Painel de Monitoramento** reagindo em tempo real aos dados injetados via SignalR.
 
 ---
 
-## 💻 Tecnologias Utilizadas (Tech Stack)
+##  Tecnologias Utilizadas (Tech Stack)
 
 Este projeto foi construído com foco em **Alta Performance, Escalabilidade e Arquitetura Limpa**:
 
@@ -87,7 +87,7 @@ Este projeto foi construído com foco em **Alta Performance, Escalabilidade e Ar
 
 ---
 
-## 🧠 Engenharia de Software: Fluxo de Event Storming
+##  Engenharia de Software: Fluxo de Event Storming
 
 Para solucionar a alta complexidade do domínio, a modelagem seguiu as etapas do Event Storming:
 
