@@ -80,10 +80,73 @@ flowchart TD
 
 🟩 Verde (Read Model): Projeções e dashboards otimizados para rápida resposta de leitura.
 
-##  Conceitos e Padrões de Arquitetura Praticados
+## 🚀 Como Rodar o Projeto
 
-Domain-Driven Design (DDD): Foco estratégico nas regras de negócio da aplicação, permitindo o isolamento de contextos delimitados (Bounded Contexts) para Contratos e Telemetria.
+### Pré-requisitos
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/) instalado e em execução.
 
-Event-Driven Architecture (EDA): Modelagem focada em fluxos de eventos para suportar alta escalabilidade e desacoplamento na recepção contínua de sinais de IoT.
+### Subindo a aplicação
+```bash
+docker-compose up -d --build
+```
+Esse comando sobe **4 containers**: SQL Server, RabbitMQ, a API e o Worker IoT.
 
-CQRS (Command Query Responsibility Segregation): Estrutura conceitual voltada à separação completa de fluxos de modificação de dados (comandos dos sensores) e fluxos analíticos de exibição (consultas de painéis e extratos de custo dinâmicos).
+---
+
+## 🗺️ Rotas e Endpoints Disponíveis
+
+Após subir a aplicação, todas as rotas ficam disponíveis a partir de `http://localhost:5257`.
+
+### Interfaces Web (Front-End)
+
+| Rota | Descrição |
+|---|---|
+| [`/portal`](http://localhost:5257/portal) | 🖥️ **Dashboard Administrativo** — Visão geral da frota com cards de status, temperatura, pressão, óleo e RPM de cada trator. |
+| [`/painel`](http://localhost:5257/painel) | 🔔 **Painel de Alertas em Tempo Real** — Recebe alertas críticos via SignalR quando sensores detectam condições de risco. |
+| [`/swagger`](http://localhost:5257/swagger) | 📚 **Documentação Interativa (Swagger UI)** — Permite testar todos os endpoints da API diretamente pelo navegador. |
+
+### API REST — Gestão de Tratores e Telemetria (`/api/tratores`)
+
+| Método | Rota | Descrição |
+|---|---|---|
+| `POST` | `/api/tratores` | Cadastra um novo equipamento na frota. |
+| `GET` | `/api/tratores/{id}` | Consulta o status atual e as últimas métricas de um trator específico. |
+| `GET` | `/api/tratores/dashboard` | Lista todos os tratores e métricas em alta performance (Dapper + CQRS). |
+| `POST` | `/api/tratores/telemetria` | Recebe carga de dados dos sensores IoT do equipamento. |
+
+### API REST — Gestão de Clientes (`/api/clientes`)
+
+| Método | Rota | Descrição |
+|---|---|---|
+| `POST` | `/api/clientes` | Cadastra um novo cliente no sistema. |
+| `GET` | `/api/clientes` | Lista todos os clientes cadastrados. |
+
+### API REST — Gestão de Contratos de Aluguel (`/api/contratos`)
+
+| Método | Rota | Descrição |
+|---|---|---|
+| `POST` | `/api/contratos` | Abre um novo contrato de aluguel e atualiza o status do equipamento. |
+| `GET` | `/api/contratos` | Lista todo o histórico de contratos da empresa. |
+
+### Tempo Real — SignalR Hub
+
+| Rota | Descrição |
+|---|---|
+| `/hubs/monitoramento` | 📡 Hub SignalR para recebimento de alertas críticos em tempo real. Evento: `ReceberAlerta`. |
+
+### Serviços de Infraestrutura
+
+| Serviço | URL | Descrição |
+|---|---|---|
+| RabbitMQ Management | [`http://localhost:15672`](http://localhost:15672) | Painel de controle do RabbitMQ (usuário: `guest`, senha: `guest`). |
+| SQL Server | `localhost:1433` | Banco de dados (usuário: `sa`, senha: `TractorAdmin@123!`). |
+
+---
+
+## 📐 Conceitos e Padrões de Arquitetura Praticados
+
+* **Domain-Driven Design (DDD):** Foco estratégico nas regras de negócio da aplicação, permitindo o isolamento de contextos delimitados (Bounded Contexts) para Contratos e Telemetria.
+
+* **Event-Driven Architecture (EDA):** Modelagem focada em fluxos de eventos para suportar alta escalabilidade e desacoplamento na recepção contínua de sinais de IoT.
+
+* **CQRS (Command Query Responsibility Segregation):** Estrutura conceitual voltada à separação completa de fluxos de modificação de dados (comandos dos sensores) e fluxos analíticos de exibição (consultas de painéis e extratos de custo dinâmicos).
