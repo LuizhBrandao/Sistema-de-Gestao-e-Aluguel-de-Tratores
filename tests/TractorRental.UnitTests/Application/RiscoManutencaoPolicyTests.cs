@@ -1,4 +1,9 @@
+<<<<<<< HEAD
+using FluentAssertions.Equivalency.Tracing;
+using MediatR;
+=======
 ﻿using MediatR;
+>>>>>>> 8e0d6d9e8781febc2de2e6bd4ab63041d945357e
 using Moq;
 using TractorRental.Application.Interfaces;
 using TractorRental.Application.Policies;
@@ -36,8 +41,13 @@ public class RiscoManutencaoPolicyTests
         await _policy.Handle(evento, CancellationToken.None);
 
         // Assert
+<<<<<<< HEAD
+        _repositoryMock.Verify(r => r.AtualizarAsync(trator, It.IsAny<CancellationToken>()), Times.Once);
+        _mediatorMock.Verify(m => m.Publish(It.IsAny<object>(), It.IsAny<CancellationToken>()), Times.Once);
+=======
         _repositoryMock.Verify(r => r.AtualizarAsync(It.IsAny<Trator>(), It.IsAny<CancellationToken>()), Times.Once);
         _mediatorMock.Verify(m => m.Publish(It.Is<object>(e => e is AlertaGeradoEvent), It.IsAny<CancellationToken>()), Times.Once);
+>>>>>>> 8e0d6d9e8781febc2de2e6bd4ab63041d945357e
     }
 
     [Fact]

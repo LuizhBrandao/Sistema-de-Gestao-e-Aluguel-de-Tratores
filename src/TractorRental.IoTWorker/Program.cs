@@ -1,6 +1,7 @@
 using MassTransit;
 using TractorRental.Application.Commands;
 using TractorRental.Infrastructure;
+using TractorRental.IoTWorker;
 using TractorRental.IoTWorker.Consumers;
 
 var builder = Host.CreateApplicationBuilder(args);
@@ -8,6 +9,8 @@ var builder = Host.CreateApplicationBuilder(args);
 // 1. Liga as camadas da arquitetura
 builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(RegistrarTelemetriaCommand).Assembly));
+
+builder.Services.AddHostedService<Worker>();
 
 // Configura o MassTransit para o Worker
 builder.Services.AddMassTransit(x =>

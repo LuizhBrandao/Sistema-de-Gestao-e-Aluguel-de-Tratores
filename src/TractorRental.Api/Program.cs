@@ -14,6 +14,18 @@ builder.Services.AddOpenApi();
 builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(RegistrarTelemetriaCommand).Assembly));
 
+// CORS Configuration
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("CorsPolicy", policy =>
+    {
+        policy.WithOrigins("http://localhost:5173", "http://127.0.0.1:5173", "http://localhost") // Added http://localhost for Docker Nginx
+              .AllowAnyHeader()
+              .AllowAnyMethod()
+              .AllowCredentials(); // Required for SignalR
+    });
+});
+
 // 1. Adiciona os serviços do SignalR no contêiner
 builder.Services.AddSignalR();
 
@@ -40,7 +52,6 @@ builder.Services.AddMassTransit(x =>
     });
 });
 
-builder.Services.AddHostedService<SensorSimulatorWorker>();
 
 var app = builder.Build();
 
@@ -52,8 +63,9 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
+app.UseCors("CorsPolicy");
 
-// As nossas 3 "gavetas" de endpoints organizadas 
+// As nossas 3 "gavetas" de endpoints organizadas
 app.MapTratorEndpoints();
 app.MapClienteEndpoints();   
 app.MapContratoEndpoints();  

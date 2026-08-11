@@ -1,4 +1,4 @@
-﻿using FluentAssertions;
+using FluentAssertions;
 using TractorRental.Domain.Aggregates;
 using TractorRental.Domain.Enums;
 using TractorRental.Domain.Events;
@@ -29,5 +29,19 @@ public class ContratoAluguelTests
 
         domainEvent.Should().NotBeNull();
         domainEvent!.TratorId.Should().Be(tratorId);
+    }
+
+    [Fact]
+    public void CalcularFaturamento_DeveRetornarValorProporcionalAsHoras()
+    {
+        // Arrange
+        var contrato = new ContratoAluguel(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), 100.00m);
+        var dataTeste = contrato.DataInicio.AddHours(2.5); // 2 horas e meia de uso
+
+        // Act
+        var faturamento = contrato.CalcularFaturamento(dataTeste);
+
+        // Assert
+        faturamento.Should().Be(250.00m);
     }
 }

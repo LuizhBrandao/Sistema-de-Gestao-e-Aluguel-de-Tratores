@@ -1,0 +1,11 @@
+feat: transforma PoC em projeto de portfólio completo com arquitetura IoT e React
+
+- feat(frontend): cria aplicação React + Vite com design premium (Glassmorphism e Dark Mode)
+- feat(api): integra SignalR para transmissão de dados de telemetria em tempo real para o painel Web
+- refactor(worker): extrai simulador de telemetria da API para um IoTWorker dedicado (BackgroundService)
+- feat(domain): implementa lógica de cálculo de faturamento em ContratoAluguel
+- fix(tests): corrige injeção do Moq (IMediator) e adiciona testes unitários para regras de faturamento
+- chore(docker): adiciona Dockerfiles isolados e unifica ambiente completo (SQL Server, RabbitMQ, API, Worker e Frontend) no docker-compose
+- fix(cors): ajusta política de CORS e rotas do SignalR para comunicação correta entre os contêineres
+
+Este commit eleva a maturidade do projeto, estabelecendo uma separação clara de responsabilidades (Clean Architecture e Event-Driven Design) e fornecendo um ambiente "one-click run" perfeito para avaliadores técnicos.

@@ -1,3 +1,22 @@
+<<<<<<< HEAD
+FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
+WORKDIR /app
+
+# Copy everything
+COPY . .
+
+# Restore and publish the API
+WORKDIR /app/src/TractorRental.Api
+RUN dotnet restore
+RUN dotnet publish -c Release -o /app/out
+
+# Build runtime image
+FROM mcr.microsoft.com/dotnet/aspnet:10.0
+WORKDIR /app
+COPY --from=build /app/out .
+
+ENTRYPOINT ["dotnet", "TractorRental.Api.dll"]
+=======
 # Usa a imagem levíssima para rodar
 FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS base
 WORKDIR /app
@@ -24,3 +43,4 @@ FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
 ENTRYPOINT ["dotnet", "TractorRental.Api.dll"]
+>>>>>>> 8e0d6d9e8781febc2de2e6bd4ab63041d945357e
