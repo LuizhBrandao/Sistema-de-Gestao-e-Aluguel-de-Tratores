@@ -14,7 +14,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\TractorRental.Application\TractorRental.Application.csproj" />
-    <ProjectReference Include="..\TractorRental.Infrastructure\TractorRental.Infrastructure.csproj" />
+    <ProjectReference Include="..\TractorRental.SharedKernel\TractorRental.SharedKernel.csproj" />
+    <ProjectReference Include="..\TractorRental.Frota.Infrastructure\TractorRental.Frota.Infrastructure.csproj" />
+    <ProjectReference Include="..\TractorRental.Frota.Application\TractorRental.Frota.Application.csproj" />
+    <ProjectReference Include="..\TractorRental.Telemetria.Application\TractorRental.Telemetria.Application.csproj" />
   </ItemGroup>
 </Project>

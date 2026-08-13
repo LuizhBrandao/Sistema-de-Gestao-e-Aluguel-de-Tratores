@@ -1,6 +1,6 @@
-﻿using Microsoft.EntityFrameworkCore;
-using TractorRental.Domain.Aggregates;
-using TractorRental.Infrastructure.Data;
+using Microsoft.EntityFrameworkCore;
+using TractorRental.Locacao.Domain.Aggregates;
+using TractorRental.Locacao.Infrastructure.Data;
 
 namespace TractorRental.Api.Endpoints;
 
@@ -10,10 +10,9 @@ public static class ClienteEndpoints
     {
         var group = app.MapGroup("/api/clientes").WithTags("Gestão de Clientes");
 
-        // 1. Cadastrar Cliente
-        group.MapPost("/", async (CriarClienteRequest request, TractorRentalDbContext db) =>
+        // 1. Cadastrar Cliente (BC: Locação)
+        group.MapPost("/", async (CriarClienteRequest request, LocacaoDbContext db) =>
         {
-            // O domínio garante que nome e documento não sejam nulos
             var cliente = new Cliente(Guid.NewGuid(), request.Nome, request.Documento);
 
             db.Clientes.Add(cliente);
@@ -23,8 +22,8 @@ public static class ClienteEndpoints
         })
         .WithSummary("Cadastra um novo cliente no sistema");
 
-        // 2. Listar Clientes
-        group.MapGet("/", async (TractorRentalDbContext db) =>
+        // 2. Listar Clientes (BC: Locação)
+        group.MapGet("/", async (LocacaoDbContext db) =>
         {
             var clientes = await db.Clientes.ToListAsync();
             return Results.Ok(clientes);
@@ -33,5 +32,4 @@ public static class ClienteEndpoints
     }
 }
 
-// DTO de entrada
 public record CriarClienteRequest(string Nome, string Documento);

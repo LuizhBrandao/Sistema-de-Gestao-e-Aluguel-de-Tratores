@@ -1,7 +1,7 @@
 using FluentAssertions;
-using TractorRental.Domain.Aggregates;
-using TractorRental.Domain.Enums;
-using TractorRental.Domain.Events;
+using TractorRental.Locacao.Domain.Aggregates;
+using TractorRental.Locacao.Domain.Enums;
+using TractorRental.SharedKernel.Events;
 
 namespace TractorRental.UnitTests.Domain;
 
@@ -23,9 +23,9 @@ public class ContratoAluguelTests
         contrato.Id.Should().Be(contratoId);
         contrato.Status.Should().Be(StatusContrato.Ativo);
 
-        // A prova de que o Evento de Domínio foi gerado internamente
+        // A prova de que o Integration Event foi gerado internamente
         contrato.DomainEvents.Should().ContainSingle();
-        var domainEvent = contrato.DomainEvents.First() as ContratoIniciadoEvent;
+        var domainEvent = contrato.DomainEvents.First() as ContratoIniciadoIntegrationEvent;
 
         domainEvent.Should().NotBeNull();
         domainEvent!.TratorId.Should().Be(tratorId);

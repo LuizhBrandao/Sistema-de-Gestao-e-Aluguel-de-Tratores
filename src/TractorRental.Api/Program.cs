@@ -1,42 +1,57 @@
 using MassTransit;
-using TractorRental.Api.Consumers; 
+using TractorRental.Api.Consumers;
 using TractorRental.Api.Endpoints;
-using TractorRental.Api.Hubs; 
+using TractorRental.Api.Hubs;
 using TractorRental.Api.Services;
-using TractorRental.Application.Commands;
-using TractorRental.Infrastructure;
+// Bounded Contexts
+using TractorRental.Locacao.Infrastructure;
+using TractorRental.Frota.Infrastructure;
+using TractorRental.Frota.Infrastructure.Data;
+using TractorRental.Locacao.Infrastructure.Data;
+using TractorRental.Telemetria.Infrastructure;
+using TractorRental.SharedKernel.Contracts;
 using Microsoft.EntityFrameworkCore;
-using TractorRental.Infrastructure.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddOpenApi();
-builder.Services.AddInfrastructure(builder.Configuration);
-builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(RegistrarTelemetriaCommand).Assembly));
+
+// ===== Bounded Contexts: Injeção de Dependências =====
+builder.Services.AddLocacaoInfrastructure(builder.Configuration);
+builder.Services.AddFrotaInfrastructure(builder.Configuration);
+builder.Services.AddTelemetriaInfrastructure();
+
+// MediatR: Registra handlers de TODOS os BCs
+builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssemblies(
+    typeof(TractorRental.Telemetria.Application.Commands.RegistrarTelemetriaCommand).Assembly,
+    typeof(TractorRental.Frota.Application.Policies.AtualizarTelemetriaPolicy).Assembly
+));
 
 // CORS Configuration
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("CorsPolicy", policy =>
     {
-        policy.WithOrigins("http://localhost:5173", "http://127.0.0.1:5173", "http://localhost") // Added http://localhost for Docker Nginx
+        policy.WithOrigins("http://localhost:5173", "http://127.0.0.1:5173", "http://localhost")
               .AllowAnyHeader()
               .AllowAnyMethod()
-              .AllowCredentials(); // Required for SignalR
+              .AllowCredentials();
     });
 });
 
-// 1. Adiciona os serviços do SignalR no contêiner
+// SignalR
 builder.Services.AddSignalR();
 
+// Simulador de sensores (Background Service)
+builder.Services.AddHostedService<SensorSimulatorWorker>();
+
+// MassTransit + RabbitMQ
 builder.Services.AddMassTransit(x =>
 {
-    // Registra o nosso consumidor de alertas
     x.AddConsumer<AlertaCriticoConsumer>();
 
     x.UsingRabbitMq((context, cfg) =>
     {
-        // Lê da variável de ambiente ou usa localhost
         var rabbitHost = builder.Configuration["RabbitHost"] ?? "localhost";
 
         cfg.Host(rabbitHost, "/", h => {
@@ -44,7 +59,6 @@ builder.Services.AddMassTransit(x =>
             h.Password("guest");
         });
 
-        // 2. Cria a fila para escutar os alertas que vêm do Worker
         cfg.ReceiveEndpoint("alertas-frontend", e =>
         {
             e.ConfigureConsumer<AlertaCriticoConsumer>(context);
@@ -65,35 +79,40 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseCors("CorsPolicy");
 
-// As nossas 3 "gavetas" de endpoints organizadas
-app.MapTratorEndpoints();
-app.MapClienteEndpoints();   
-app.MapContratoEndpoints();  
+// Endpoints organizados por Bounded Context
+app.MapTratorEndpoints();    // BC: Frota
+app.MapClienteEndpoints();   // BC: Locação
+app.MapContratoEndpoints();  // BC: Locação + Frota (cross-BC via Integration Events)
 
-// 3. Mapeia a URL do SignalR
+// SignalR Hub
 app.MapHub<MonitoramentoHub>("/hubs/monitoramento");
 
-// 4. Redireciona rotas desconhecidas para o index.html (SPA fallback)
+// SPA Fallback
 app.MapFallbackToFile("index.html");
 
-// Executa as Migrations automaticamente ao subir a API
+// Startup: Garante que o banco está acessível (tabelas já existem das migrations anteriores)
 using (var scope = app.Services.CreateScope())
 {
-    var dbContext = scope.ServiceProvider.GetRequiredService<TractorRentalDbContext>();
     try
     {
-        dbContext.Database.Migrate();
+        var frotaDb = scope.ServiceProvider.GetRequiredService<FrotaDbContext>();
+        frotaDb.Database.Migrate();
     }
     catch (Exception ex)
     {
         var logger = scope.ServiceProvider.GetRequiredService<ILoggerFactory>().CreateLogger("DatabaseMigration");
-        logger.LogWarning(ex, "Erro ao executar migrations. O banco de dados pode já existir. Verificando compatibilidade...");
+        logger.LogWarning(ex, "Migration do contexto Frota falhou. As tabelas podem já existir.");
+    }
 
-        // Garante que o banco está acessível mesmo que as migrations falhem
-        if (!dbContext.Database.CanConnect())
-        {
-            throw; // Se não consegue nem conectar, algo está realmente errado
-        }
+    try
+    {
+        var locacaoDb = scope.ServiceProvider.GetRequiredService<LocacaoDbContext>();
+        locacaoDb.Database.Migrate();
+    }
+    catch (Exception ex)
+    {
+        var logger = scope.ServiceProvider.GetRequiredService<ILoggerFactory>().CreateLogger("DatabaseMigration");
+        logger.LogWarning(ex, "Migration do contexto Locação falhou. As tabelas podem já existir.");
     }
 }
 

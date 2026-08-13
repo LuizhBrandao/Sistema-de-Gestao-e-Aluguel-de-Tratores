@@ -1,5 +1,5 @@
-﻿using FluentAssertions;
-using TractorRental.Domain.Aggregates;
+using FluentAssertions;
+using TractorRental.Locacao.Domain.Aggregates;
 
 namespace TractorRental.UnitTests.Domain;
 

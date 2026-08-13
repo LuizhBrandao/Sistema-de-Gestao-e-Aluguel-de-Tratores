@@ -1,26 +1,29 @@
 using MassTransit;
-using TractorRental.Application.Commands;
-using TractorRental.Infrastructure;
+using TractorRental.Telemetria.Application.Commands;
+using TractorRental.Frota.Infrastructure;
 using TractorRental.IoTWorker;
 using TractorRental.IoTWorker.Consumers;
 
 var builder = Host.CreateApplicationBuilder(args);
 
-// 1. Liga as camadas da arquitetura
-builder.Services.AddInfrastructure(builder.Configuration);
-builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(RegistrarTelemetriaCommand).Assembly));
+// Bounded Contexts
+builder.Services.AddFrotaInfrastructure(builder.Configuration);
+
+// MediatR: Registra handlers de Telemetria + Frota (para as policies reagirem)
+builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssemblies(
+    typeof(RegistrarTelemetriaCommand).Assembly,
+    typeof(TractorRental.Frota.Application.Policies.AtualizarTelemetriaPolicy).Assembly
+));
 
 builder.Services.AddHostedService<Worker>();
 
-// Configura o MassTransit para o Worker
+// MassTransit + RabbitMQ
 builder.Services.AddMassTransit(x =>
 {
-    // 1. Registra o seu consumidor de telemetria
     x.AddConsumer<TelemetriaConsumer>();
 
     x.UsingRabbitMq((context, cfg) =>
     {
-        // 👇 AQUI ESTÁ A MUDANÇA: Lê da variável de ambiente ou usa localhost
         var rabbitHost = builder.Configuration["RabbitHost"] ?? "localhost";
 
         cfg.Host(rabbitHost, "/", h => {
@@ -28,8 +31,6 @@ builder.Services.AddMassTransit(x =>
             h.Password("guest");
         });
 
-        // 2. AQUI ESTÁ O SEGREDO: Você precisa configurar o endpoint 
-        // para a fila que a API está usando para PUBLISH
         cfg.ReceiveEndpoint("telemetria-tratores", e =>
         {
             e.ConfigureConsumer<TelemetriaConsumer>(context);

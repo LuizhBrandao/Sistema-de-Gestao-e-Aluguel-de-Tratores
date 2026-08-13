@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
@@ -17,8 +17,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\TractorRental.Application\TractorRental.Application.csproj" />
-    <ProjectReference Include="..\..\src\TractorRental.Domain\TractorRental.Domain.csproj" />
+    <ProjectReference Include="..\..\src\TractorRental.SharedKernel\TractorRental.SharedKernel.csproj" />
+    <ProjectReference Include="..\..\src\TractorRental.Telemetria.Application\TractorRental.Telemetria.Application.csproj" />
+    <ProjectReference Include="..\..\src\TractorRental.Frota.Domain\TractorRental.Frota.Domain.csproj" />
+    <ProjectReference Include="..\..\src\TractorRental.Frota.Application\TractorRental.Frota.Application.csproj" />
+    <ProjectReference Include="..\..\src\TractorRental.Locacao.Domain\TractorRental.Locacao.Domain.csproj" />
   </ItemGroup>
 
   <ItemGroup>

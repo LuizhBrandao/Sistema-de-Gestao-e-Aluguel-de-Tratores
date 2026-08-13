@@ -1,6 +1,6 @@
-﻿using MassTransit;
-using TractorRental.Infrastructure.Data;
-using TractorRental.Messages;
+using MassTransit;
+using TractorRental.Frota.Infrastructure.Data;
+using TractorRental.SharedKernel.Contracts;
 
 namespace TractorRental.Api.Services;
 
@@ -19,7 +19,7 @@ public class SensorSimulatorWorker(
             try
             {
                 using var scope = scopeFactory.CreateScope();
-                var dbContext = scope.ServiceProvider.GetRequiredService<TractorRentalDbContext>();
+                var dbContext = scope.ServiceProvider.GetRequiredService<FrotaDbContext>();
                 var bus = scope.ServiceProvider.GetRequiredService<IBus>();
 
                 var trator = dbContext.Tratores.FirstOrDefault();
@@ -30,12 +30,12 @@ public class SensorSimulatorWorker(
 
                     var telemetria = new TelemetriaMessage(
                     trator.Id,
-                    80.0 + (random.NextDouble() * 35.0), // Temp normal até 115
-                    25.0 + (random.NextDouble() * 10.0), // Pressão entre 25 (crítico) e 35
-                    random.Next(5, 100),                 // Combustível
-                    10.0 + (random.NextDouble() * 90.0), // Óleo (pode cair pra 10%)
-                    random.Next(800, 4000),              // RPM
-                    random.Next(0, 40)                   // Velocidade (Tratores são lentos)
+                    80.0 + (random.NextDouble() * 35.0),
+                    25.0 + (random.NextDouble() * 10.0),
+                    random.Next(5, 100),
+                    10.0 + (random.NextDouble() * 90.0),
+                    random.Next(800, 4000),
+                    random.Next(0, 40)
 );
 
                     await bus.Publish(telemetria);

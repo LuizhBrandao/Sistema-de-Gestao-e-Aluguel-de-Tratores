@@ -1,11 +1,7 @@
 version: '3.8'
 
 services:
-<<<<<<< HEAD
-  # Banco de Dados
-=======
   # 1. Banco de Dados SQL Server
->>>>>>> 8e0d6d9e8781febc2de2e6bd4ab63041d945357e
   sqlserver:
     image: mcr.microsoft.com/mssql/server:2022-latest
     environment:
@@ -14,29 +10,22 @@ services:
     ports:
       - "1433:1433"
     volumes:
-<<<<<<< HEAD
-      - sqlserver_data:/var/opt/mssql
+      - sqlvolume:/var/opt/mssql
     networks:
       - tractor_network
     restart: unless-stopped
     healthcheck:
-      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P 'TractorRental@2026!' -Q 'SELECT 1' -No"]
+      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P 'TractorAdmin@123!' -Q 'SELECT 1' -No"]
       interval: 10s
       timeout: 5s
       retries: 5
 
-  # Message Broker
-=======
-      - sqlvolume:/var/opt/mssql
-
   # 2. Mensageria RabbitMQ (Com interface web)
->>>>>>> 8e0d6d9e8781febc2de2e6bd4ab63041d945357e
   rabbitmq:
     image: rabbitmq:3-management
     ports:
-<<<<<<< HEAD
-      - "5672:5672"
-      - "15672:15672"
+      - "5672:5672"   # Porta do sistema
+      - "15672:15672" # Porta do painel de controle (Navegador)
     networks:
       - tractor_network
     restart: unless-stopped
@@ -46,59 +35,6 @@ services:
       timeout: 5s
       retries: 5
 
-  # Backend API
-  api:
-    build: 
-      context: .
-      dockerfile: src/TractorRental.Api/Dockerfile
-    container_name: tractor_rental_api
-    depends_on:
-      sqlserver:
-        condition: service_healthy
-      rabbitmq:
-        condition: service_healthy
-    ports:
-      - "5000:8080"
-    networks:
-      - tractor_network
-    environment:
-      - ConnectionStrings__DefaultConnection=Server=sqlserver;Database=TractorRental;User Id=sa;Password=TractorRental@2026!;TrustServerCertificate=True;
-      - ASPNETCORE_ENVIRONMENT=Development
-
-  # IoT Telemetry Worker
-  iotworker:
-    build:
-      context: .
-      dockerfile: src/TractorRental.IoTWorker/Dockerfile
-    container_name: tractor_rental_iotworker
-    depends_on:
-      sqlserver:
-        condition: service_healthy
-      rabbitmq:
-        condition: service_healthy
-      api:
-        condition: service_started
-    networks:
-      - tractor_network
-    environment:
-      - ConnectionStrings__DefaultConnection=Server=sqlserver;Database=TractorRental;User Id=sa;Password=TractorRental@2026!;TrustServerCertificate=True;
-      - DOTNET_ENVIRONMENT=Development
-
-  # Frontend Web App
-  frontend:
-    build:
-      context: src/TractorRental.Frontend
-      dockerfile: Dockerfile
-    container_name: tractor_rental_frontend
-    ports:
-      - "80:80"
-    networks:
-      - tractor_network
-
-=======
-      - "5672:5672"   # Porta do sistema
-      - "15672:15672" # Porta do painel de controle (Navegador)
-
   # 3. Nossa API Minimalista + Interface Fullstack
   api:
     build:
@@ -106,28 +42,38 @@ services:
       dockerfile: src/TractorRental.Api/Dockerfile
     ports:
       - "5257:8080"
+    networks:
+      - tractor_network
     environment:
       # Sobrescreve as configurações do appsettings.json
       - ASPNETCORE_ENVIRONMENT=Development 
       - ConnectionStrings__DefaultConnection=Server=sqlserver;Database=TractorRentalDb;User Id=sa;Password=TractorAdmin@123!;TrustServerCertificate=True;
       - RabbitHost=rabbitmq
     depends_on:
-      - sqlserver
-      - rabbitmq
+      sqlserver:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
 
   # 4. Nosso Consumidor Background IoT
   worker:
     build:
       context: .
       dockerfile: src/TractorRental.IoTWorker/Dockerfile
+    networks:
+      - tractor_network
     environment:
       - ConnectionStrings__DefaultConnection=Server=sqlserver;Database=TractorRentalDb;User Id=sa;Password=TractorAdmin@123!;TrustServerCertificate=True;
       - RabbitHost=rabbitmq
     depends_on:
-      - sqlserver
-      - rabbitmq
+      sqlserver:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
 
-# Salva os dados do banco para não perder ao desligar o Docker
->>>>>>> 8e0d6d9e8781febc2de2e6bd4ab63041d945357e
 volumes:
   sqlvolume:
+
+networks:
+  tractor_network:
+    driver: bridge

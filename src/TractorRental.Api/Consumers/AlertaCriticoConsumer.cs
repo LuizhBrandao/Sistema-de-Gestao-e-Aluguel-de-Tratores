@@ -1,7 +1,7 @@
-﻿using MassTransit;
+using MassTransit;
 using Microsoft.AspNetCore.SignalR;
 using TractorRental.Api.Hubs;
-using TractorRental.Messages;
+using TractorRental.SharedKernel.Contracts;
 
 namespace TractorRental.Api.Consumers;
 
@@ -14,7 +14,7 @@ public class AlertaCriticoConsumer(
         var alerta = context.Message;
         logger.LogWarning("🚨 Alerta do RabbitMQ recebido na API. Notificando Frontend: Trator {Id}", alerta.TratorId);
 
-        // O SignalR dispara o evento "ReceberAlerta" para TODOS os navegadores que estiverem com a tela aberta
+        // O SignalR dispara o evento "ReceberAlerta" para TODOS os navegadores conectados
         await hubContext.Clients.All.SendAsync("ReceberAlerta", alerta);
     }
 }

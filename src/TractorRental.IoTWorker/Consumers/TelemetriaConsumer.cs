@@ -1,7 +1,7 @@
-﻿using MassTransit;
+using MassTransit;
 using MediatR;
-using TractorRental.Application.Commands;
-using TractorRental.Messages;
+using TractorRental.Telemetria.Application.Commands;
+using TractorRental.SharedKernel.Contracts;
 
 namespace TractorRental.IoTWorker.Consumers;
 
@@ -13,13 +13,12 @@ public class TelemetriaConsumer(
     {
         var mensagem = context.Message;
 
-        // 1. INSPEÇÃO: Loga tudo que chega, para sabermos se o RabbitMQ está entregando
         logger.LogInformation("🔍 Mensagem recebida no Consumer: Trator {Id}, Temp: {Temp}ºC",
             mensagem.TratorId, mensagem.TemperaturaMotor);
 
         try
         {
-            // Passo 2. TENTA SALVAR NO BANCO
+            // Despacha para o BC de Telemetria processar
             var command = new RegistrarTelemetriaCommand(
                 mensagem.TratorId,
                 mensagem.TemperaturaMotor,
@@ -34,14 +33,14 @@ public class TelemetriaConsumer(
 
             if (sucesso)
             {
-                logger.LogInformation("✅ Telemetria do trator {TratorId} salva.", mensagem.TratorId);
+                logger.LogInformation("✅ Telemetria do trator {TratorId} processada.", mensagem.TratorId);
             }
             else
             {
-                logger.LogWarning("⚠️ Falha ao salvar telemetria no banco (Regra de negócio impediu).");
+                logger.LogWarning("⚠️ Falha ao processar telemetria.");
             }
 
-            // 3. O ALERTA É INDEPENDENTE: Valida TODOS os sensores para o Painel em Tempo Real
+            // Detecção de anomalias para alertar o Frontend via RabbitMQ → SignalR
             var alertas = new List<string>();
 
             if (mensagem.TemperaturaMotor > 110.0)
@@ -56,7 +55,6 @@ public class TelemetriaConsumer(
             if (mensagem.RotacaoMotor > 3500 && mensagem.Velocidade < 10)
                 alertas.Add("Falha na transmissão (RPM muito alto)");
 
-            // Se existir pelo menos um alerta, dispara para o frontend!
             if (alertas.Any())
             {
                 var mensagemUnificada = string.Join(" | ", alertas);
@@ -66,16 +64,15 @@ public class TelemetriaConsumer(
 
                 await endpoint.Send(new AlertaCriticoMessage(
                     mensagem.TratorId,
-                    mensagem.TemperaturaMotor, // Mantemos a temperatura para o ecrã não dar erro
-                    mensagemUnificada          // A nova mensagem com todos os defeitos juntos!
+                    mensagem.TemperaturaMotor,
+                    mensagemUnificada
                 ));
             }
         }
         catch (Exception ex)
         {
-            // 4. ARMADILHA DE ERRO: Se o código explodir por qualquer motivo, saberemos aqui
             logger.LogError("❌ ERRO CRÍTICO AO PROCESSAR {Temp}ºC: {Erro}", mensagem.TemperaturaMotor, ex.Message);
-            throw; // Relança para o MassTransit tentar novamente se necessário
+            throw;
         }
     }
 }

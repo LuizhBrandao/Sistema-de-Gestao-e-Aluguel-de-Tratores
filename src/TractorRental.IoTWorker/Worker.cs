@@ -1,6 +1,6 @@
 using MassTransit;
-using TractorRental.Infrastructure.Data;
-using TractorRental.Messages;
+using TractorRental.Frota.Infrastructure.Data;
+using TractorRental.SharedKernel.Contracts;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.DependencyInjection;
@@ -26,11 +26,9 @@ public class Worker(
             try
             {
                 using var scope = scopeFactory.CreateScope();
-                var dbContext = scope.ServiceProvider.GetRequiredService<TractorRentalDbContext>();
+                var dbContext = scope.ServiceProvider.GetRequiredService<FrotaDbContext>();
                 var bus = scope.ServiceProvider.GetRequiredService<IBus>();
 
-                // In a real scenario, this worker would represent many edge devices.
-                // Here we fetch all active tractors to simulate data for them.
                 var tratores = dbContext.Tratores.ToList();
 
                 foreach(var trator in tratores)
@@ -39,9 +37,12 @@ public class Worker(
 
                     var telemetria = new TelemetriaMessage(
                         trator.Id,
-                        80.0 + (random.NextDouble() * 40.0), // Temp: 80 - 120
-                        30.0 + (random.NextDouble() * 5.0),  // Pneu: 30 - 35
-                        random.Next(10, 100)
+                        80.0 + (random.NextDouble() * 40.0),
+                        30.0 + (random.NextDouble() * 5.0),
+                        random.Next(10, 100),
+                        10.0 + (random.NextDouble() * 90.0),
+                        random.Next(800, 4000),
+                        random.Next(0, 40)
                     );
 
                     await bus.Publish(telemetria, stoppingToken);

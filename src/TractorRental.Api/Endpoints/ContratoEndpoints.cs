@@ -1,8 +1,9 @@
-﻿using MediatR;
+using MediatR;
 using Microsoft.EntityFrameworkCore;
-using TractorRental.Domain.Aggregates;
-using TractorRental.Domain.Enums;
-using TractorRental.Infrastructure.Data;
+using TractorRental.Locacao.Domain.Aggregates;
+using TractorRental.Locacao.Infrastructure.Data;
+using TractorRental.Frota.Domain.Enums;
+using TractorRental.Frota.Infrastructure.Data;
 
 namespace TractorRental.Api.Endpoints;
 
@@ -12,30 +13,29 @@ public static class ContratoEndpoints
     {
         var group = app.MapGroup("/api/contratos").WithTags("Gestão de Contratos de Aluguel");
 
-        // 1. Alugar um Trator (Abertura de Contrato)
-        group.MapPost("/", async (CriarContratoRequest request, TractorRentalDbContext db, IMediator mediator) =>
+        // 1. Alugar um Trator — Coordenação Cross-BC (Locação + Frota)
+        group.MapPost("/", async (CriarContratoRequest request, LocacaoDbContext locacaoDb, FrotaDbContext frotaDb, IMediator mediator) =>
         {
-            // Validação 1: O cliente existe?
-            var clienteExiste = await db.Clientes.AnyAsync(c => c.Id == request.ClienteId);
+            // Validação 1: O cliente existe? (BC: Locação)
+            var clienteExiste = await locacaoDb.Clientes.AnyAsync(c => c.Id == request.ClienteId);
             if (!clienteExiste)
                 return Results.BadRequest(new { Erro = "Cliente não encontrado." });
 
-            // Validação 2: O trator existe e está disponível?
-            var trator = await db.Tratores.FindAsync(request.TratorId);
+            // Validação 2: O trator existe e está disponível? (BC: Frota)
+            var trator = await frotaDb.Tratores.FindAsync(request.TratorId);
             if (trator is null)
                 return Results.BadRequest(new { Erro = "Trator não encontrado." });
 
             if (trator.Status != StatusTrator.Operacional)
                 return Results.BadRequest(new { Erro = $"Trator indisponível para aluguel. Status atual: {trator.Status}" });
 
-            // Cria o contrato (O Agregado cria o evento 'ContratoIniciadoEvent' internamente)
+            // Cria o contrato (BC: Locação — gera ContratoIniciadoIntegrationEvent internamente)
             var contrato = new ContratoAluguel(Guid.NewGuid(), request.ClienteId, request.TratorId, request.ValorHora);
 
-            db.ContratosAluguel.Add(contrato);
-            await db.SaveChangesAsync();
+            locacaoDb.ContratosAluguel.Add(contrato);
+            await locacaoDb.SaveChangesAsync();
 
-            // O PULO DO GATO: Dispara os eventos para a aplicação reagir!
-            // Isso fará a AtualizarStatusTratorAlugadoPolicy rodar e mudar o status do trator para "Alugado"
+            // Dispara Integration Events via MediatR (SharedKernel → Frota reage)
             var eventos = contrato.DomainEvents.ToList();
             contrato.LimparEventos();
 
@@ -48,15 +48,14 @@ public static class ContratoEndpoints
         })
         .WithSummary("Abre um novo contrato de aluguel e atualiza o status do equipamento");
 
-        // 2. Listar Contratos
-        group.MapGet("/", async (TractorRentalDbContext db) =>
+        // 2. Listar Contratos (BC: Locação)
+        group.MapGet("/", async (LocacaoDbContext locacaoDb) =>
         {
-            var contratos = await db.ContratosAluguel.ToListAsync();
+            var contratos = await locacaoDb.ContratosAluguel.ToListAsync();
             return Results.Ok(contratos);
         })
         .WithSummary("Lista todo o histórico de contratos da empresa");
     }
 }
 
-// DTO de entrada
 public record CriarContratoRequest(Guid ClienteId, Guid TratorId, decimal ValorHora);

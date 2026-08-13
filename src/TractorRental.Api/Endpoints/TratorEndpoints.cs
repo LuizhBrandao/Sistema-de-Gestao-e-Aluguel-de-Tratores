@@ -1,8 +1,8 @@
-﻿using MediatR;
-using TractorRental.Application.Commands;
-using TractorRental.Application.Interfaces;
-using TractorRental.Domain.Aggregates;
-using TractorRental.Infrastructure.Data;
+using MediatR;
+using TractorRental.Telemetria.Application.Commands;
+using TractorRental.Frota.Application.Interfaces;
+using TractorRental.Frota.Domain.Aggregates;
+using TractorRental.Frota.Infrastructure.Data;
 
 namespace TractorRental.Api.Endpoints;
 
@@ -12,8 +12,8 @@ public static class TratorEndpoints
     {
         var group = app.MapGroup("/api/tratores").WithTags("Gestão de Tratores e Telemetria");
 
-        // 1. Endpoint auxiliar para cadastrar um trator (para termos dados para testar)
-        group.MapPost("/", async (CriarTratorRequest request, TractorRentalDbContext db) =>
+        // 1. Cadastrar trator (BC: Frota)
+        group.MapPost("/", async (CriarTratorRequest request, FrotaDbContext db) =>
         {
             var trator = new Trator(Guid.NewGuid(), request.Modelo);
             db.Tratores.Add(trator);
@@ -23,15 +23,15 @@ public static class TratorEndpoints
         })
         .WithSummary("Cadastra um novo equipamento na frota");
 
-        // 2. Endpoint de Consulta (Para vermos o status mudando em tempo real)
-        group.MapGet("/{id:guid}", async (Guid id, TractorRentalDbContext db) =>
+        // 2. Consultar trator por ID (BC: Frota)
+        group.MapGet("/{id:guid}", async (Guid id, FrotaDbContext db) =>
         {
             var trator = await db.Tratores.FindAsync(id);
             return trator is not null ? Results.Ok(trator) : Results.NotFound();
         })
         .WithSummary("Consulta o status atual e as últimas métricas do trator");
 
-        // Endpoint Otimizado com CQRS e Dapper para o Portal Web
+        // 3. Dashboard otimizado com Dapper (BC: Frota - CQRS Read Side)
         group.MapGet("/dashboard", async (ITratorQueries queries) =>
         {
             var tratores = await queries.ObterDashboardTratoresAsync();
@@ -39,21 +39,19 @@ public static class TratorEndpoints
         })
         .WithSummary("Lista todos os tratores e métricas em alta performance (Dapper)");
 
-        // 3. Endpoint Principal: Recebendo a Telemetria IoT (Isolado com CQRS)
+        // 4. Endpoint de Telemetria IoT (BC: Telemetria)
         group.MapPost("/telemetria", async (TelemetriaRequest request, IMediator mediator) =>
         {
-            // Transforma o JSON da requisição na nossa "intenção" de negócio
             var command = new RegistrarTelemetriaCommand(
                 request.TratorId,
                 request.TemperaturaMotor,
                 request.PressaoPneus,
                 request.NivelCombustivel,
-                request.NivelOleo,      // <- Novo
-                request.RotacaoMotor,   // <- Novo
-                request.Velocidade      // <- Novo
+                request.NivelOleo,
+                request.RotacaoMotor,
+                request.Velocidade
             );
 
-            // O MediatR roteia para o Handler, que carrega o Agregado, valida e salva no banco
             var sucesso = await mediator.Send(command);
 
             if (!sucesso)
@@ -65,6 +63,5 @@ public static class TratorEndpoints
     }
 }
 
-// DTOs (Records são perfeitos para mapear o JSON de entrada de forma imutável)
 public record CriarTratorRequest(string Modelo);
 public record TelemetriaRequest(Guid TratorId, double TemperaturaMotor, double PressaoPneus, double NivelCombustivel, double NivelOleo, double RotacaoMotor, double Velocidade);
