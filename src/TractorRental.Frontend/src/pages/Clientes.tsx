@@ -9,7 +9,7 @@ export const Clientes: React.FC = () => {
   const [enviando, setEnviando] = useState(false);
 
   const carregarClientes = () => {
-    fetch('http://localhost:5000/api/clientes')
+    fetch('http://localhost:5257/api/clientes')
       .then(res => res.json())
       .then(data => setClientes(data))
       .catch(err => console.error("Erro ao carregar clientes", err));
@@ -31,7 +31,7 @@ export const Clientes: React.FC = () => {
 
     setEnviando(true);
     try {
-      const res = await fetch('http://localhost:5000/api/clientes', {
+      const res = await fetch('http://localhost:5257/api/clientes', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData)

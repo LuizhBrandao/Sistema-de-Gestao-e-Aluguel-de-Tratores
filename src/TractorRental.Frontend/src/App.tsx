@@ -67,7 +67,7 @@ function App() {
 
   useEffect(() => {
     const fetchTratores = () => {
-      fetch('http://localhost:5000/api/tratores/dashboard')
+      fetch('http://localhost:5257/api/tratores/dashboard')
         .then(res => res.json())
         .then(data => setTratores(data))
         .catch(err => console.error("Error fetching tractors:", err));
@@ -77,7 +77,7 @@ function App() {
     const intervalId = setInterval(fetchTratores, 5000);
 
     const connection = new signalR.HubConnectionBuilder()
-      .withUrl("http://localhost:5000/hubs/monitoramento")
+      .withUrl("http://localhost:5257/hubs/monitoramento")
       .withAutomaticReconnect()
       .build();
 
@@ -120,7 +120,7 @@ function App() {
 
     setEnviando(true);
     try {
-      const response = await fetch('http://localhost:5000/api/tratores', {
+      const response = await fetch('http://localhost:5257/api/tratores', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -141,7 +141,7 @@ function App() {
       setFormSuccess('Trator cadastrado com sucesso!');
       setFormData(FORM_INICIAL);
       
-      fetch('http://localhost:5000/api/tratores/dashboard')
+      fetch('http://localhost:5257/api/tratores/dashboard')
         .then(res => res.json())
         .then(data => setTratores(data))
         .catch(err => console.error("Error fetching tractors:", err));

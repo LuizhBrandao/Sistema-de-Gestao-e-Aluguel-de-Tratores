@@ -13,7 +13,7 @@ export const Contratos: React.FC = () => {
   const [enviando, setEnviando] = useState(false);
 
   const carregarContratos = () => {
-    fetch('http://localhost:5000/api/contratos')
+    fetch('http://localhost:5257/api/contratos')
       .then(res => res.json())
       .then(data => setContratos(data))
       .catch(err => console.error("Erro ao carregar contratos", err));
@@ -25,11 +25,11 @@ export const Contratos: React.FC = () => {
 
   const abrirModal = async () => {
     try {
-      const resClientes = await fetch('http://localhost:5000/api/clientes');
+      const resClientes = await fetch('http://localhost:5257/api/clientes');
       const dataClientes = await resClientes.json();
       setClientes(dataClientes);
 
-      const resTratores = await fetch('http://localhost:5000/api/tratores/dashboard');
+      const resTratores = await fetch('http://localhost:5257/api/tratores/dashboard');
       const dataTratores = await resTratores.json();
       setTratores(dataTratores.filter((t: any) => t.status === 'Operacional'));
 
@@ -51,7 +51,7 @@ export const Contratos: React.FC = () => {
 
     setEnviando(true);
     try {
-      const res = await fetch('http://localhost:5000/api/contratos', {
+      const res = await fetch('http://localhost:5257/api/contratos', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

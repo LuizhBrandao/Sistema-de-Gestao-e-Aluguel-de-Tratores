@@ -8,8 +8,8 @@ export const Dashboard: React.FC = () => {
   useEffect(() => {
     // Carrega dados extras do Resumo Operacional
     Promise.all([
-      fetch('http://localhost:5000/api/clientes').then(res => res.json()),
-      fetch('http://localhost:5000/api/contratos').then(res => res.json())
+      fetch('http://localhost:5257/api/clientes').then(res => res.json()),
+      fetch('http://localhost:5257/api/contratos').then(res => res.json())
     ]).then(([clientes, contratos]) => {
       setEstatisticasExtras({
         clientes: clientes.length || 0,
