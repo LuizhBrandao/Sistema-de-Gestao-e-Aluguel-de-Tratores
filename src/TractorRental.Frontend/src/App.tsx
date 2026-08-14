@@ -1,6 +1,22 @@
 import { useEffect, useState } from 'react';
 import * as signalR from '@microsoft/signalr';
 
+import { Gauge } from './components/Gauge';
+import { StatusBadge } from './components/StatusBadge';
+
+interface TratorDto {
+  id: string;
+  marca: string;
+  modelo: string;
+  status: string;
+  temperaturaAtualMotor: number;
+  pressaoAtualPneus: number;
+  nivelCombustivel: number;
+  nivelOleo: number;
+  rotacaoMotor: number;
+  velocidade: number;
+}
+
 interface TelemetryData {
   tractorId: string;
   speed: number;
@@ -69,7 +85,7 @@ const FORM_INICIAL: CadastroTratorForm = {
 };
 
 function App() {
-  const [telemetry, setTelemetry] = useState<TelemetryData[]>([]);
+  const [tratores, setTratores] = useState<TratorDto[]>([]);
   const [alerts, setAlerts] = useState<Alert[]>([]);
   const [connectionStatus, setConnectionStatus] = useState('Disconnected');
   const [modalAberto, setModalAberto] = useState(false);
@@ -85,6 +101,11 @@ function App() {
   ];
 
   useEffect(() => {
+    fetch('http://localhost:5000/api/tratores/dashboard')
+      .then(res => res.json())
+      .then(data => setTratores(data))
+      .catch(err => console.error("Error fetching tractors:", err));
+
     const connection = new signalR.HubConnectionBuilder()
       .withUrl("http://localhost:5000/hubs/monitoramento")
       .withAutomaticReconnect()
@@ -97,15 +118,16 @@ function App() {
         setConnectionStatus('Connected');
         
         connection.on("ReceiveTelemetry", (data: TelemetryData) => {
-          setTelemetry(prev => {
-            const index = prev.findIndex(t => t.tractorId === data.tractorId);
-            if (index >= 0) {
-              const newTelemetry = [...prev];
-              newTelemetry[index] = data;
-              return newTelemetry;
-            }
-            return [...prev, data];
-          });
+          setTratores(prev => prev.map(t => 
+            t.id === data.tractorId 
+              ? { 
+                  ...t, 
+                  velocidade: data.speed, 
+                  nivelCombustivel: data.fuelLevel, 
+                  temperaturaAtualMotor: data.engineTemp 
+                } 
+              : t
+          ));
         });
 
         connection.on("ReceiveAlert", (alert: Alert) => {
@@ -158,6 +180,13 @@ function App() {
 
       setFormSuccess('Trator cadastrado com sucesso!');
       setFormData(FORM_INICIAL);
+      
+      // Fetch latest tractors after creation
+      fetch('http://localhost:5000/api/tratores/dashboard')
+        .then(res => res.json())
+        .then(data => setTratores(data))
+        .catch(err => console.error("Error fetching tractors:", err));
+
       setTimeout(() => {
         setModalAberto(false);
         setFormSuccess('');
@@ -185,19 +214,28 @@ function App() {
       </header>
       
       <main className="dashboard-grid">
-        <section className="glass-card telemetry-section">
-          <h2>🚜 Real-time Telemetry</h2>
-          <div className="telemetry-grid">
-            {telemetry.length === 0 ? (
-              <p className="empty-state">Waiting for telemetry data...</p>
+        <section className="glass-card telemetry-section" style={{ gridColumn: '1 / -1' }}>
+          <h2>🚜 Frota em Tempo Real</h2>
+          <div className="cards-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(400px, 1fr))', gap: '20px', marginTop: '1rem' }}>
+            {tratores.length === 0 ? (
+              <p className="empty-state">Nenhum trator cadastrado ou carregando...</p>
             ) : (
-              telemetry.map(t => (
-                <div key={t.tractorId} className="telemetry-item">
-                  <h3>Tractor #{t.tractorId}</h3>
-                  <p>Speed: {t.speed} km/h</p>
-                  <p>Fuel: {t.fuelLevel}%</p>
-                  <p>Temp: {t.engineTemp}°C</p>
-                  <span className="timestamp">{new Date(t.timestamp).toLocaleTimeString()}</span>
+              tratores.map(t => (
+                <div key={t.id} className="trator-card fade-in">
+                  <div className="trator-card-header">
+                    <h3 className="trator-card-title">🚜 {t.marca} {t.modelo}</h3>
+                    <StatusBadge status={t.status} />
+                  </div>
+                  <div className="trator-card-body">
+                    <div className="gauge-grid">
+                      <Gauge value={t.temperaturaAtualMotor} max={150} unit="°C" label="Motor" thresholds={{ dangerAbove: 110, warningAbove: 95 }} />
+                      <Gauge value={t.pressaoAtualPneus} max={45} unit="PSI" label="Pneus" thresholds={{ dangerBelow: 26, warningBelow: 28 }} />
+                      <Gauge value={t.nivelOleo} max={100} unit="%" label="Óleo" thresholds={{ dangerBelow: 15, warningBelow: 25 }} />
+                      <Gauge value={t.rotacaoMotor} max={4500} unit="rpm" label="Rotação" thresholds={{ warningAbove: 3500 }} />
+                      <Gauge value={t.nivelCombustivel} max={100} unit="%" label="Combustível" thresholds={{ dangerBelow: 10, warningBelow: 20 }} />
+                      <Gauge value={t.velocidade} max={50} unit="km/h" label="Velocidade" />
+                    </div>
+                  </div>
                 </div>
               ))
             )}
