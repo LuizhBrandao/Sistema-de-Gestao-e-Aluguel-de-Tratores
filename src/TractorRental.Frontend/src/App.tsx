@@ -26,10 +26,57 @@ interface RentalContract {
   status: 'Active' | 'Pending' | 'Completed';
 }
 
+const MARCAS_TRATOR = [
+  'JohnDeere',
+  'MasseyFerguson',
+  'Valtra',
+  'NewHolland',
+  'CaseIH',
+  'Agrale',
+  'Caterpillar',
+  'Kubota',
+  'Outra',
+] as const;
+
+const MARCA_LABELS: Record<string, string> = {
+  JohnDeere: 'John Deere',
+  MasseyFerguson: 'Massey Ferguson',
+  Valtra: 'Valtra',
+  NewHolland: 'New Holland',
+  CaseIH: 'Case IH',
+  Agrale: 'Agrale',
+  Caterpillar: 'Caterpillar',
+  Kubota: 'Kubota',
+  Outra: 'Outra',
+};
+
+interface CadastroTratorForm {
+  marca: string;
+  modelo: string;
+  anoFabricacao: string;
+  potenciaCv: string;
+  horimetroInicial: string;
+  numeroSerie: string;
+}
+
+const FORM_INICIAL: CadastroTratorForm = {
+  marca: '',
+  modelo: '',
+  anoFabricacao: '',
+  potenciaCv: '',
+  horimetroInicial: '0',
+  numeroSerie: '',
+};
+
 function App() {
   const [telemetry, setTelemetry] = useState<TelemetryData[]>([]);
   const [alerts, setAlerts] = useState<Alert[]>([]);
   const [connectionStatus, setConnectionStatus] = useState('Disconnected');
+  const [modalAberto, setModalAberto] = useState(false);
+  const [formData, setFormData] = useState<CadastroTratorForm>(FORM_INICIAL);
+  const [formError, setFormError] = useState('');
+  const [formSuccess, setFormSuccess] = useState('');
+  const [enviando, setEnviando] = useState(false);
 
   // Dummy rental data
   const rentals: RentalContract[] = [
@@ -75,13 +122,65 @@ function App() {
     };
   }, []);
 
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
+  };
+
+  const handleCadastro = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setFormError('');
+    setFormSuccess('');
+
+    if (!formData.marca || !formData.modelo || !formData.anoFabricacao || !formData.potenciaCv || !formData.numeroSerie) {
+      setFormError('Preencha todos os campos obrigatórios.');
+      return;
+    }
+
+    setEnviando(true);
+    try {
+      const response = await fetch('http://localhost:5000/api/tratores', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          marca: formData.marca,
+          modelo: formData.modelo,
+          anoFabricacao: parseInt(formData.anoFabricacao),
+          potenciaCv: parseInt(formData.potenciaCv),
+          horimetroInicial: parseFloat(formData.horimetroInicial) || 0,
+          numeroSerie: formData.numeroSerie,
+        }),
+      });
+
+      if (!response.ok) {
+        const err = await response.json();
+        throw new Error(err.mensagem || 'Erro ao cadastrar trator.');
+      }
+
+      setFormSuccess('Trator cadastrado com sucesso!');
+      setFormData(FORM_INICIAL);
+      setTimeout(() => {
+        setModalAberto(false);
+        setFormSuccess('');
+      }, 1500);
+    } catch (err) {
+      setFormError(err instanceof Error ? err.message : 'Erro ao cadastrar trator.');
+    } finally {
+      setEnviando(false);
+    }
+  };
+
   return (
     <div className="dashboard-container">
       <header className="glass-header">
-        <h1>Tractor Rental & Telemetry</h1>
-        <div className={`status-badge status-${connectionStatus.toLowerCase().replace(' ', '-')}`}>
-          <span className="dot"></span>
-          {connectionStatus}
+        <h1>Gestão de Frota & Telemetria</h1>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+          <button className="btn-add-trator" onClick={() => { setModalAberto(true); setFormError(''); setFormSuccess(''); }}>
+            ＋ Cadastrar Trator
+          </button>
+          <div className={`status-badge status-${connectionStatus.toLowerCase().replace(' ', '-')}`}>
+            <span className="dot"></span>
+            {connectionStatus}
+          </div>
         </div>
       </header>
       
@@ -142,6 +241,66 @@ function App() {
           </div>
         </section>
       </main>
+
+      {modalAberto && (
+        <div className="modal-overlay" onClick={() => setModalAberto(false)}>
+          <div className="modal-content" onClick={e => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>🚜 Cadastrar Trator</h2>
+              <button className="modal-close" onClick={() => setModalAberto(false)}>✕</button>
+            </div>
+
+            {formError && <div className="form-error">{formError}</div>}
+            {formSuccess && <div className="form-success">{formSuccess}</div>}
+
+            <form onSubmit={handleCadastro}>
+              <div className="form-grid">
+                <div className="form-group">
+                  <label htmlFor="marca">Marca (Fabricante)</label>
+                  <select id="marca" name="marca" value={formData.marca} onChange={handleChange} required>
+                    <option value="">Selecione a marca...</option>
+                    {MARCAS_TRATOR.map(m => (
+                      <option key={m} value={m}>{MARCA_LABELS[m]}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="form-group">
+                  <label htmlFor="modelo">Modelo</label>
+                  <input id="modelo" name="modelo" type="text" placeholder="Ex: 8R 370" value={formData.modelo} onChange={handleChange} required />
+                </div>
+
+                <div className="form-group">
+                  <label htmlFor="anoFabricacao">Ano de Fabricação</label>
+                  <input id="anoFabricacao" name="anoFabricacao" type="number" placeholder="Ex: 2022" min="1950" max={new Date().getFullYear() + 1} value={formData.anoFabricacao} onChange={handleChange} required />
+                </div>
+
+                <div className="form-group">
+                  <label htmlFor="potenciaCv">Potência (CV)</label>
+                  <input id="potenciaCv" name="potenciaCv" type="number" placeholder="Ex: 370" min="1" value={formData.potenciaCv} onChange={handleChange} required />
+                </div>
+
+                <div className="form-group">
+                  <label htmlFor="horimetroInicial">Horímetro Inicial (h)</label>
+                  <input id="horimetroInicial" name="horimetroInicial" type="number" placeholder="Ex: 1250" min="0" step="0.1" value={formData.horimetroInicial} onChange={handleChange} />
+                </div>
+
+                <div className="form-group">
+                  <label htmlFor="numeroSerie">Nº de Série (PIN)</label>
+                  <input id="numeroSerie" name="numeroSerie" type="text" placeholder="Ex: 1LV8370RCNR000123" value={formData.numeroSerie} onChange={handleChange} required />
+                </div>
+              </div>
+
+              <div className="form-actions">
+                <button type="button" className="btn btn-secondary" onClick={() => setModalAberto(false)}>Cancelar</button>
+                <button type="submit" className="btn btn-primary" disabled={enviando}>
+                  {enviando ? 'Cadastrando...' : 'Cadastrar Trator'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -14,7 +14,12 @@ public class TratorQueries(string connectionString) : ITratorQueries
         const string sql = @"
             SELECT 
                 Id, 
+                Marca,
                 Modelo, 
+                AnoFabricacao,
+                PotenciaCv,
+                HorimetroInicial,
+                NumeroSerie,
                 Status, 
                 TemperaturaAtualMotor, 
                 PressaoAtualPneus, 
@@ -23,7 +28,7 @@ public class TratorQueries(string connectionString) : ITratorQueries
                 RotacaoMotor,     
                 Velocidade        
             FROM Tratores
-            ORDER BY Status DESC, Modelo ASC";
+            ORDER BY Status DESC, Marca ASC, Modelo ASC";
 
         return await connection.QueryAsync<TratorDto>(sql);
     }

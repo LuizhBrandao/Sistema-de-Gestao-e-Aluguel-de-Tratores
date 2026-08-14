@@ -6,7 +6,12 @@ namespace TractorRental.Frota.Domain.Aggregates;
 public class Trator
 {
     public Guid Id { get; private set; }
+    public MarcaTrator Marca { get; private set; }
     public string Modelo { get; private set; } = string.Empty;
+    public int AnoFabricacao { get; private set; }
+    public int PotenciaCv { get; private set; }
+    public double HorimetroInicial { get; private set; }
+    public string NumeroSerie { get; private set; } = string.Empty;
     public double TemperaturaAtualMotor { get; private set; }
     public double PressaoAtualPneus { get; private set; }
     public double NivelCombustivel { get; private set; }
@@ -20,10 +25,26 @@ public class Trator
 
     protected Trator() { }
 
-    public Trator(Guid id, string modelo)
+    public Trator(Guid id, MarcaTrator marca, string modelo, int anoFabricacao,
+                  int potenciaCv, double horimetroInicial, string numeroSerie)
     {
         Id = id;
-        Modelo = modelo;
+        Marca = marca;
+        Modelo = !string.IsNullOrWhiteSpace(modelo)
+            ? modelo
+            : throw new ArgumentException("Modelo é obrigatório.", nameof(modelo));
+        AnoFabricacao = anoFabricacao > 1950 && anoFabricacao <= DateTime.UtcNow.Year + 1
+            ? anoFabricacao
+            : throw new ArgumentOutOfRangeException(nameof(anoFabricacao), "Ano de fabricação deve estar entre 1950 e o próximo ano.");
+        PotenciaCv = potenciaCv > 0
+            ? potenciaCv
+            : throw new ArgumentOutOfRangeException(nameof(potenciaCv), "Potência deve ser positiva.");
+        HorimetroInicial = horimetroInicial >= 0
+            ? horimetroInicial
+            : throw new ArgumentOutOfRangeException(nameof(horimetroInicial), "Horímetro não pode ser negativo.");
+        NumeroSerie = !string.IsNullOrWhiteSpace(numeroSerie)
+            ? numeroSerie
+            : throw new ArgumentException("Número de Série (PIN) é obrigatório.", nameof(numeroSerie));
         Status = StatusTrator.Operacional;
     }
 

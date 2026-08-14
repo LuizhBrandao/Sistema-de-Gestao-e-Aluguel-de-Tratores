@@ -3,6 +3,7 @@ using TractorRental.Telemetria.Application.Commands;
 using TractorRental.Frota.Application.Interfaces;
 using TractorRental.Frota.Domain.Aggregates;
 using TractorRental.Frota.Infrastructure.Data;
+using TractorRental.Frota.Domain.Enums;
 
 namespace TractorRental.Api.Endpoints;
 
@@ -15,7 +16,19 @@ public static class TratorEndpoints
         // 1. Cadastrar trator (BC: Frota)
         group.MapPost("/", async (CriarTratorRequest request, FrotaDbContext db) =>
         {
-            var trator = new Trator(Guid.NewGuid(), request.Modelo);
+            if (!Enum.TryParse<MarcaTrator>(request.Marca, true, out var marca))
+                return Results.BadRequest(new { Mensagem = $"Marca inválida: '{request.Marca}'. Valores aceitos: {string.Join(", ", Enum.GetNames<MarcaTrator>())}" });
+
+            var trator = new Trator(
+                Guid.NewGuid(),
+                marca,
+                request.Modelo,
+                request.AnoFabricacao,
+                request.PotenciaCv,
+                request.HorimetroInicial,
+                request.NumeroSerie
+            );
+
             db.Tratores.Add(trator);
             await db.SaveChangesAsync();
 
@@ -63,5 +76,12 @@ public static class TratorEndpoints
     }
 }
 
-public record CriarTratorRequest(string Modelo);
+public record CriarTratorRequest(
+    string Marca,
+    string Modelo,
+    int AnoFabricacao,
+    int PotenciaCv,
+    double HorimetroInicial,
+    string NumeroSerie
+);
 public record TelemetriaRequest(Guid TratorId, double TemperaturaMotor, double PressaoPneus, double NivelCombustivel, double NivelOleo, double RotacaoMotor, double Velocidade);
