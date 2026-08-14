@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using TractorRental.Locacao.Domain.Aggregates;
+using TractorRental.Locacao.Domain.Enums;
 using TractorRental.Locacao.Infrastructure.Data;
 
 namespace TractorRental.Api.Endpoints;
@@ -13,7 +14,20 @@ public static class ClienteEndpoints
         // 1. Cadastrar Cliente (BC: Locação)
         group.MapPost("/", async (CriarClienteRequest request, LocacaoDbContext db) =>
         {
-            var cliente = new Cliente(Guid.NewGuid(), request.Nome, request.Documento);
+            var tipoPessoa = Enum.Parse<TipoPessoa>(request.TipoPessoa);
+            
+            var documento = new DocumentoIdentificacao(request.Documento, tipoPessoa);
+            var contato = new ContatoOperacional(request.NomeResponsavelOperacional, request.TelefoneOperacional, request.EmailFaturamento);
+            var endereco = new Endereco(request.EnderecoOperacao, request.CidadeOperacao, request.EstadoOperacao);
+
+            var cliente = new Cliente(
+                Guid.NewGuid(), 
+                documento, 
+                request.RazaoSocialOuNome, 
+                request.InscricaoEstadual, 
+                request.EmailFaturamento, 
+                contato, 
+                endereco);
 
             db.Clientes.Add(cliente);
             await db.SaveChangesAsync();
@@ -32,4 +46,15 @@ public static class ClienteEndpoints
     }
 }
 
-public record CriarClienteRequest(string Nome, string Documento);
+public record CriarClienteRequest(
+    string TipoPessoa,
+    string Documento,
+    string RazaoSocialOuNome,
+    string? InscricaoEstadual,
+    string EmailFaturamento,
+    string NomeResponsavelOperacional,
+    string TelefoneOperacional,
+    string EnderecoOperacao,
+    string CidadeOperacao,
+    string EstadoOperacao
+);
