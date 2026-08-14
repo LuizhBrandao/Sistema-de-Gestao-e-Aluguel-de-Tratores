@@ -73,18 +73,18 @@ Esse comando sobe **4 containers**: SQL Server, RabbitMQ, a API e o Worker IoT.
 
 ##  Rotas e Endpoints Disponíveis
 
-Após subir a aplicação, todas as rotas ficam disponíveis a partir de `http://localhost:5257`.
+Após subir a aplicação, a API estará disponível em `http://localhost:5257` e o Front-End React em `http://localhost:5173`.
 
-### Interfaces Web (Front-End)
+### Interfaces Web (Front-End React)
 
 | Rota | Descrição |
 |---|---|
-| [`/`](http://localhost:5257/) |  **Dashboard Administrativo** — Visão geral com KPIs, distribuição e alertas. |
-| [`/tratores.html`](http://localhost:5257/tratores.html) |  **Monitoramento da Frota** — Gauges em tempo real de temperatura, pressão, óleo e RPM. |
-| [`/clientes.html`](http://localhost:5257/clientes.html) |  **Gestão de Clientes** — Listagem e cadastro de clientes. |
-| [`/contratos.html`](http://localhost:5257/contratos.html) |  **Contratos de Aluguel** — Histórico e abertura de novos contratos. |
-| [`/alertas.html`](http://localhost:5257/alertas.html) |  **Central de Alertas** — Feed em tempo real de anomalias detectadas via SignalR. |
-| [`/swagger`](http://localhost:5257/swagger) |  **Documentação Interativa (Swagger UI)** — Permite testar endpoints da API. |
+| [`/`](http://localhost:5173/) |  **Dashboard Administrativo** — Visão geral com KPIs, distribuição e alertas. |
+| [`/frota`](http://localhost:5173/frota) |  **Monitoramento da Frota** — Gauges em tempo real de telemetria (temperatura, pressão, óleo, RPM) e cadastro de tratores. |
+| [`/clientes`](http://localhost:5173/clientes) |  **Gestão de Clientes** — Listagem em formato *cards* e cadastro de clientes. |
+| [`/contratos`](http://localhost:5173/contratos) |  **Contratos de Aluguel** — Histórico e abertura de novos contratos vinculados a tratores operacionais. |
+| [`/alertas`](http://localhost:5173/alertas) |  **Central de Alertas** — Feed em tempo real de anomalias detectadas via SignalR. |
+| [`/swagger`](http://localhost:5257/swagger) |  **Documentação Interativa da API (Swagger UI)** — Permite testar os endpoints da API (porta 5257). |
 
 ### API REST — Gestão de Tratores e Telemetria (`/api/tratores`)
 
