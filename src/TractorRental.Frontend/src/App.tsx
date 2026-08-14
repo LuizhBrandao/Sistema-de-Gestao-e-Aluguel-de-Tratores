@@ -172,7 +172,7 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<Layout />}>
+        <Route path="/" element={<Layout context={contextValue} />}>
           <Route index element={<Dashboard />} />
           <Route path="frota" element={<Frota />} />
           <Route path="clientes" element={<Clientes />} />
