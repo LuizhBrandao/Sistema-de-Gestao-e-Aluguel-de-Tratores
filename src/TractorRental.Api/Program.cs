@@ -76,7 +76,6 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-app.UseStaticFiles();
 app.UseCors("CorsPolicy");
 
 // Endpoints organizados por Bounded Context
@@ -86,9 +85,6 @@ app.MapContratoEndpoints();  // BC: Locação + Frota (cross-BC via Integration 
 
 // SignalR Hub
 app.MapHub<MonitoramentoHub>("/hubs/monitoramento");
-
-// SPA Fallback
-app.MapFallbackToFile("index.html");
 
 // Startup: Garante que o banco está acessível (tabelas já existem das migrations anteriores)
 using (var scope = app.Services.CreateScope())
