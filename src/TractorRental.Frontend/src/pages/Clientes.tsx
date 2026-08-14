@@ -96,8 +96,15 @@ export const Clientes: React.FC = () => {
       });
       
       if (!res.ok) {
-        const errorData = await res.json().catch(() => null);
-        throw new Error(errorData?.message || 'Erro ao cadastrar cliente. Verifique os dados e tente novamente.');
+        const errorText = await res.text();
+        let errorMessage = 'Erro ao cadastrar cliente. Verifique os dados e tente novamente.';
+        try {
+          const errorData = JSON.parse(errorText);
+          errorMessage = errorData?.message || errorData?.title || errorData?.detail || errorMessage;
+        } catch {
+          console.error("Erro bruto da API:", errorText);
+        }
+        throw new Error(errorMessage);
       }
 
       setFormSuccess('Cliente cadastrado com sucesso!');
