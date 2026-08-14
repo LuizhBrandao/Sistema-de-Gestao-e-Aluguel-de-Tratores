@@ -19,12 +19,12 @@ export const Alertas: React.FC = () => {
               <p className="empty-state-text">Nenhum alerta crítico ativo</p>
             </div>
           ) : (
-            alerts.map((a: any) => (
-              <div key={a.id} className={`alert-card ${a.severity.toLowerCase()}`}>
-                <div className="alert-icon">{a.severity === 'Critical' ? '⚠️' : '🔔'}</div>
+            alerts.map((a: any, idx: number) => (
+              <div key={idx} className={`alert-card ${a.temperatura && a.temperatura > 110 ? 'critical' : 'warning'} slide-up`}>
+                <div className="alert-icon">{a.temperatura && a.temperatura > 110 ? '⚠️' : '🔔'}</div>
                 <div className="alert-content">
-                  <div className="alert-title">Tractor #{a.tractorId}</div>
-                  <div className="alert-message">{a.message}</div>
+                  <div className="alert-title">Tractor #{a.tratorId}</div>
+                  <div className="alert-message">{a.mensagem} {a.temperatura ? `(Temp: ${a.temperatura.toFixed(1)}°C)` : ''}</div>
                 </div>
                 <div className="alert-time">{new Date(a.timestamp).toLocaleTimeString()}</div>
               </div>

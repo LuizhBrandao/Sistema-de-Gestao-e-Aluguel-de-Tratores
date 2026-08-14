@@ -31,11 +31,10 @@ interface TelemetryData {
 }
 
 interface Alert {
-  id: string;
-  tractorId: string;
-  message: string;
-  severity: 'Warning' | 'Critical';
-  timestamp: string;
+  tratorId: string;
+  mensagem: string;
+  temperatura?: number;
+  timestamp: string; // generated client-side
 }
 
 interface CadastroTratorForm {
@@ -67,10 +66,15 @@ function App() {
   const [enviando, setEnviando] = useState(false);
 
   useEffect(() => {
-    fetch('http://localhost:5000/api/tratores/dashboard')
-      .then(res => res.json())
-      .then(data => setTratores(data))
-      .catch(err => console.error("Error fetching tractors:", err));
+    const fetchTratores = () => {
+      fetch('http://localhost:5000/api/tratores/dashboard')
+        .then(res => res.json())
+        .then(data => setTratores(data))
+        .catch(err => console.error("Error fetching tractors:", err));
+    };
+
+    fetchTratores();
+    const intervalId = setInterval(fetchTratores, 5000);
 
     const connection = new signalR.HubConnectionBuilder()
       .withUrl("http://localhost:5000/hubs/monitoramento")
@@ -82,22 +86,15 @@ function App() {
     connection.start()
       .then(() => {
         setConnectionStatus('Connected');
-        
-        connection.on("ReceiveTelemetry", (data: TelemetryData) => {
-          setTratores(prev => prev.map(t => 
-            t.id === data.tractorId 
-              ? { 
-                  ...t, 
-                  velocidade: data.speed, 
-                  nivelCombustivel: data.fuelLevel, 
-                  temperaturaAtualMotor: data.engineTemp 
-                } 
-              : t
-          ));
-        });
 
-        connection.on("ReceiveAlert", (alert: Alert) => {
-          setAlerts(prev => [alert, ...prev].slice(0, 10)); // Keep last 10
+        connection.on("ReceberAlerta", (alerta: any) => {
+          const newAlert: Alert = {
+            tratorId: alerta.tratorId,
+            mensagem: alerta.mensagem,
+            temperatura: alerta.temperatura,
+            timestamp: new Date().toISOString()
+          };
+          setAlerts(prev => [newAlert, ...prev].slice(0, 10)); // Keep last 10
         });
       })
       .catch(err => {
@@ -106,6 +103,7 @@ function App() {
       });
 
     return () => {
+      clearInterval(intervalId);
       connection.stop();
     };
   }, []);
