@@ -56,7 +56,7 @@ function renderTratores(tratores) {
                 const header = card.querySelector('.trator-card-header');
                 if (header) {
                     header.innerHTML = `
-                        <h3 class="trator-card-title">🚜 ${t.modelo}</h3>
+                        <h3 class="trator-card-title">🚜 ${t.marca || ''} ${t.modelo}</h3>
                         ${getStatusBadge(t.status)}
                     `;
                 }
@@ -89,7 +89,7 @@ function generateTratorCardHtml(t) {
     return `
         <div class="trator-card fade-in" id="trator-${t.id}">
             <div class="trator-card-header">
-                <h3 class="trator-card-title">🚜 ${t.modelo}</h3>
+                <h3 class="trator-card-title">🚜 ${t.marca || ''} ${t.modelo}</h3>
                 ${getStatusBadge(t.status)}
             </div>
             <div class="trator-card-body">
@@ -107,21 +107,50 @@ function generateTratorCardHtml(t) {
 }
 
 async function salvarTrator() {
+    const marca = document.getElementById('input-marca').value;
     const inputModelo = document.getElementById('input-modelo');
     const modelo = inputModelo.value.trim();
+    const ano = parseInt(document.getElementById('input-ano').value);
+    const potencia = parseInt(document.getElementById('input-potencia').value);
+    const horimetro = parseFloat(document.getElementById('input-horimetro').value) || 0;
+    const serie = document.getElementById('input-serie').value.trim();
     
-    if (!modelo) {
-        showToast('Informe o modelo do trator', 'error');
+    if (!marca || !modelo || !ano || !potencia || !serie) {
+        showToast('Preencha todos os campos obrigatórios', 'error');
         return;
     }
     
     try {
-        await apiPost('/api/tratores', { modelo });
+        const payload = {
+            marca: marca,
+            modelo: modelo,
+            anoFabricacao: ano,
+            potenciaCv: potencia,
+            horimetroInicial: horimetro,
+            numeroSerie: serie
+        };
+        
+        await apiPost('/api/tratores', payload);
         showToast('Trator cadastrado com sucesso!', 'success');
         hideModal('modal-trator');
+        
+        document.getElementById('input-marca').value = '';
         inputModelo.value = '';
+        document.getElementById('input-ano').value = '';
+        document.getElementById('input-potencia').value = '';
+        document.getElementById('input-horimetro').value = '0';
+        document.getElementById('input-serie').value = '';
+        
         loadTratores(); // Reload with spinner to show new item
     } catch (error) {
-        showToast('Erro ao cadastrar trator', 'error');
+        let errorMsg = 'Erro ao cadastrar trator';
+        if (error.response && error.response.mensagem) {
+            errorMsg = error.response.mensagem;
+        } else if (error.mensagem) {
+            errorMsg = error.mensagem;
+        } else if (error.message) {
+            errorMsg = error.message;
+        }
+        showToast(errorMsg, 'error');
     }
 }

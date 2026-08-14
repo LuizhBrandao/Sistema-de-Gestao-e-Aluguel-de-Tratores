@@ -45,8 +45,39 @@
             </div>
             <div class="modal-body">
                 <div class="form-group">
+                    <label class="form-label" for="input-marca">Marca</label>
+                    <select class="form-input" id="input-marca">
+                        <option value="">Selecione a marca...</option>
+                        <option value="JohnDeere">John Deere</option>
+                        <option value="MasseyFerguson">Massey Ferguson</option>
+                        <option value="Valtra">Valtra</option>
+                        <option value="NewHolland">New Holland</option>
+                        <option value="CaseIH">Case IH</option>
+                        <option value="Agrale">Agrale</option>
+                        <option value="Caterpillar">Caterpillar</option>
+                        <option value="Kubota">Kubota</option>
+                        <option value="Outra">Outra</option>
+                    </select>
+                </div>
+                <div class="form-group">
                     <label class="form-label" for="input-modelo">Modelo</label>
-                    <input class="form-input" type="text" id="input-modelo" placeholder="Ex: John Deere 6M">
+                    <input class="form-input" type="text" id="input-modelo" placeholder="Ex: 8R 370">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="input-ano">Ano de Fabricação</label>
+                    <input class="form-input" type="number" id="input-ano" placeholder="Ex: 2022">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="input-potencia">Potência (CV)</label>
+                    <input class="form-input" type="number" id="input-potencia" placeholder="Ex: 370">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="input-horimetro">Horímetro Inicial (h)</label>
+                    <input class="form-input" type="number" id="input-horimetro" placeholder="Ex: 1250" value="0">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="input-serie">Nº de Série (PIN)</label>
+                    <input class="form-input" type="text" id="input-serie" placeholder="Ex: 1LV8370RCNR000123">
                 </div>
             </div>
             <div class="modal-footer">
