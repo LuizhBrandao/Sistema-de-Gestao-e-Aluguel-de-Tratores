@@ -18,8 +18,11 @@ public class ContratoAluguel
 
     protected ContratoAluguel() { }
 
-    public ContratoAluguel(Guid id, Guid clienteId, Guid tratorId, decimal valorHora)
+    public ContratoAluguel(Guid id, Guid clienteId, Guid tratorId, decimal valorHora, bool isTratorOperacional)
     {
+        if (!isTratorOperacional)
+            throw new InvalidOperationException("Trator indisponível para aluguel. Apenas tratores operacionais podem ser alugados.");
+
         Id = id;
         ClienteId = clienteId;
         TratorId = tratorId;

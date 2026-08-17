@@ -1,4 +1,5 @@
 using MediatR;
+using TractorRental.Frota.Application.Commands;
 using TractorRental.Telemetria.Application.Commands;
 using TractorRental.Frota.Application.Interfaces;
 using TractorRental.Frota.Domain.Aggregates;
@@ -14,14 +15,10 @@ public static class TratorEndpoints
         var group = app.MapGroup("/api/tratores").WithTags("Gestão de Tratores e Telemetria");
 
         // 1. Cadastrar trator (BC: Frota)
-        group.MapPost("/", async (CriarTratorRequest request, FrotaDbContext db) =>
+        group.MapPost("/", async (CriarTratorRequest request, IMediator mediator) =>
         {
-            if (!Enum.TryParse<MarcaTrator>(request.Marca, true, out var marca))
-                return Results.BadRequest(new { Mensagem = $"Marca inválida: '{request.Marca}'. Valores aceitos: {string.Join(", ", Enum.GetNames<MarcaTrator>())}" });
-
-            var trator = new Trator(
-                Guid.NewGuid(),
-                marca,
+            var command = new CadastrarTratorCommand(
+                request.Marca,
                 request.Modelo,
                 request.AnoFabricacao,
                 request.PotenciaCv,
@@ -29,10 +26,15 @@ public static class TratorEndpoints
                 request.NumeroSerie
             );
 
-            db.Tratores.Add(trator);
-            await db.SaveChangesAsync();
-
-            return Results.Created($"/api/tratores/{trator.Id}", trator);
+            try
+            {
+                var tratorId = await mediator.Send(command);
+                return Results.Created($"/api/tratores/{tratorId}", new { Id = tratorId });
+            }
+            catch (ArgumentException ex)
+            {
+                return Results.BadRequest(new { Mensagem = ex.Message });
+            }
         })
         .WithSummary("Cadastra um novo equipamento na frota");
 

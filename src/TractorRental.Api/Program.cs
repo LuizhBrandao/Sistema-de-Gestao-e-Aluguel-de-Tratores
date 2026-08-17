@@ -3,6 +3,7 @@ using TractorRental.Api.Consumers;
 using TractorRental.Api.Endpoints;
 using TractorRental.Api.Hubs;
 using TractorRental.Api.Services;
+using TractorRental.Locacao.Application.Interfaces;
 // Bounded Contexts
 using TractorRental.Locacao.Infrastructure;
 using TractorRental.Frota.Infrastructure;
@@ -20,6 +21,7 @@ builder.Services.AddOpenApi();
 builder.Services.AddLocacaoInfrastructure(builder.Configuration);
 builder.Services.AddFrotaInfrastructure(builder.Configuration);
 builder.Services.AddTelemetriaInfrastructure();
+builder.Services.AddScoped<ITratorLocacaoAcl, TratorLocacaoAcl>();
 
 // MediatR: Registra handlers de TODOS os BCs
 builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssemblies(

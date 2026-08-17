@@ -8,7 +8,7 @@ namespace TractorRental.UnitTests.Domain;
 public class TratorTests
 {
     private static Trator CriarTratorValido(string modelo = "8R 370", MarcaTrator marca = MarcaTrator.JohnDeere)
-        => new(Guid.NewGuid(), marca, modelo, 2022, 370, 1250.0, "1LV8370RCNR000123");
+        => new(Guid.NewGuid(), marca.ToString(), modelo, 2022, 370, 1250.0, "1LV8370RCNR000123");
 
     // ── Testes de criação ──────────────────────────────────────────────
 
@@ -32,7 +32,7 @@ public class TratorTests
     public void CriarTrator_ComModeloVazio_DeveLancarException()
     {
         // Act
-        var act = () => new Trator(Guid.NewGuid(), MarcaTrator.Valtra, "", 2022, 250, 0, "PIN123");
+        var act = () => new Trator(Guid.NewGuid(), MarcaTrator.Valtra.ToString(), "", 2022, 250, 0, "PIN123");
 
         // Assert
         act.Should().Throw<ArgumentException>().WithParameterName("modelo");
@@ -42,7 +42,7 @@ public class TratorTests
     public void CriarTrator_ComAnoInvalido_DeveLancarException()
     {
         // Act
-        var act = () => new Trator(Guid.NewGuid(), MarcaTrator.NewHolland, "T7", 1900, 180, 0, "PIN123");
+        var act = () => new Trator(Guid.NewGuid(), MarcaTrator.NewHolland.ToString(), "T7", 1900, 180, 0, "PIN123");
 
         // Assert
         act.Should().Throw<ArgumentOutOfRangeException>().WithParameterName("anoFabricacao");
@@ -52,7 +52,7 @@ public class TratorTests
     public void CriarTrator_ComPotenciaZero_DeveLancarException()
     {
         // Act
-        var act = () => new Trator(Guid.NewGuid(), MarcaTrator.CaseIH, "Magnum", 2022, 0, 0, "PIN123");
+        var act = () => new Trator(Guid.NewGuid(), MarcaTrator.CaseIH.ToString(), "Magnum", 2022, 0, 0, "PIN123");
 
         // Assert
         act.Should().Throw<ArgumentOutOfRangeException>().WithParameterName("potenciaCv");
@@ -62,7 +62,7 @@ public class TratorTests
     public void CriarTrator_ComHorimetroNegativo_DeveLancarException()
     {
         // Act
-        var act = () => new Trator(Guid.NewGuid(), MarcaTrator.Agrale, "5075", 2020, 75, -10, "PIN123");
+        var act = () => new Trator(Guid.NewGuid(), MarcaTrator.Agrale.ToString(), "5075", 2020, 75, -10, "PIN123");
 
         // Assert
         act.Should().Throw<ArgumentOutOfRangeException>().WithParameterName("horimetroInicial");
@@ -72,7 +72,7 @@ public class TratorTests
     public void CriarTrator_ComNumeroSerieVazio_DeveLancarException()
     {
         // Act
-        var act = () => new Trator(Guid.NewGuid(), MarcaTrator.Kubota, "M7", 2023, 170, 0, "");
+        var act = () => new Trator(Guid.NewGuid(), MarcaTrator.Kubota.ToString(), "M7", 2023, 170, 0, "");
 
         // Assert
         act.Should().Throw<ArgumentException>().WithParameterName("numeroSerie");

@@ -17,7 +17,7 @@ public class ContratoAluguelTests
         var valorHora = 150.00m;
 
         // Act
-        var contrato = new ContratoAluguel(contratoId, clienteId, tratorId, valorHora);
+        var contrato = new ContratoAluguel(contratoId, clienteId, tratorId, valorHora, true);
 
         // Assert
         contrato.Id.Should().Be(contratoId);
@@ -35,7 +35,7 @@ public class ContratoAluguelTests
     public void CalcularFaturamento_DeveRetornarValorProporcionalAsHoras()
     {
         // Arrange
-        var contrato = new ContratoAluguel(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), 100.00m);
+        var contrato = new ContratoAluguel(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), 100.00m, true);
         var dataTeste = contrato.DataInicio.AddHours(2.5); // 2 horas e meia de uso
 
         // Act

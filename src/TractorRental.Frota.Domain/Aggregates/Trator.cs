@@ -25,11 +25,13 @@ public class Trator
 
     protected Trator() { }
 
-    public Trator(Guid id, MarcaTrator marca, string modelo, int anoFabricacao,
+    public Trator(Guid id, string marca, string modelo, int anoFabricacao,
                   int potenciaCv, double horimetroInicial, string numeroSerie)
     {
         Id = id;
-        Marca = marca;
+        Marca = Enum.TryParse<MarcaTrator>(marca, true, out var parsedMarca) 
+            ? parsedMarca 
+            : throw new ArgumentException($"Marca inválida: '{marca}'. Valores aceitos: {string.Join(", ", Enum.GetNames<MarcaTrator>())}");
         Modelo = !string.IsNullOrWhiteSpace(modelo)
             ? modelo
             : throw new ArgumentException("Modelo é obrigatório.", nameof(modelo));
