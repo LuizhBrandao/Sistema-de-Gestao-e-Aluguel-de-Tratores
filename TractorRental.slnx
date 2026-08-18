@@ -8,6 +8,10 @@
   <Project Path="src/TractorRental.Frota.Infrastructure/TractorRental.Frota.Infrastructure.csproj" />
   <Project Path="src/TractorRental.Telemetria.Application/TractorRental.Telemetria.Application.csproj" />
   <Project Path="src/TractorRental.Telemetria.Infrastructure/TractorRental.Telemetria.Infrastructure.csproj" />
+  <Folder Name="/src/">
+    <Project Path="src/TractorRental.AppHost/TractorRental.AppHost.csproj" />
+    <Project Path="src/TractorRental.ServiceDefaults/TractorRental.ServiceDefaults.csproj" />
+  </Folder>
   <Project Path="src/TractorRental.Api/TractorRental.Api.csproj" />
   <Project Path="src/TractorRental.IoTWorker/TractorRental.IoTWorker.csproj" />
   <Project Path="tests/TractorRental.UnitTests/TractorRental.UnitTests.csproj" />

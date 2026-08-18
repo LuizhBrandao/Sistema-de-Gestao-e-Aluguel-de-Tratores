@@ -6,6 +6,8 @@ using TractorRental.IoTWorker.Consumers;
 
 var builder = Host.CreateApplicationBuilder(args);
 
+builder.AddServiceDefaults();
+
 // Bounded Contexts
 builder.Services.AddFrotaInfrastructure(builder.Configuration);
 
@@ -24,12 +26,9 @@ builder.Services.AddMassTransit(x =>
 
     x.UsingRabbitMq((context, cfg) =>
     {
-        var rabbitHost = builder.Configuration["RabbitHost"] ?? "localhost";
+        var rabbitHost = builder.Configuration.GetConnectionString("rabbitmq") ?? "amqp://guest:guest@localhost:5672";
 
-        cfg.Host(rabbitHost, "/", h => {
-            h.Username("guest");
-            h.Password("guest");
-        });
+        cfg.Host(new Uri(rabbitHost));
 
         cfg.ReceiveEndpoint("telemetria-tratores", e =>
         {

@@ -5,7 +5,8 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="MediatR" Version="14.1.0" />
+    <PackageReference Include="MediatR" Version="14.2.0" />
+
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\TractorRental.Locacao.Domain\TractorRental.Locacao.Domain.csproj" />

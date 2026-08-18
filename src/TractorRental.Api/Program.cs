@@ -15,6 +15,8 @@ using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.AddServiceDefaults();
+
 builder.Services.AddOpenApi();
 
 // ===== Bounded Contexts: Injeção de Dependências =====
@@ -54,12 +56,9 @@ builder.Services.AddMassTransit(x =>
 
     x.UsingRabbitMq((context, cfg) =>
     {
-        var rabbitHost = builder.Configuration["RabbitHost"] ?? "localhost";
+        var rabbitHost = builder.Configuration.GetConnectionString("rabbitmq") ?? "amqp://guest:guest@localhost:5672";
 
-        cfg.Host(rabbitHost, "/", h => {
-            h.Username("guest");
-            h.Password("guest");
-        });
+        cfg.Host(new Uri(rabbitHost));
 
         cfg.ReceiveEndpoint("alertas-frontend", e =>
         {
