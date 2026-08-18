@@ -3,6 +3,7 @@
   <ItemGroup>
     <ProjectReference Include="..\TractorRental.Api\TractorRental.Api.csproj" />
     <ProjectReference Include="..\TractorRental.IoTWorker\TractorRental.IoTWorker.csproj" />
+    <ProjectReference Include="..\TractorRental.BlazorFrontend\TractorRental.BlazorFrontend.csproj" />
   </ItemGroup>
 
   <ItemGroup>
