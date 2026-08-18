@@ -3,9 +3,8 @@
 <!-- Linguagens e Frameworks Principais -->
 ![.NET 10](https://img.shields.io/badge/.NET%2010-512BD4?style=for-the-badge&logo=dotnet&logoColor=white)
 ![C#](https://img.shields.io/badge/C%23-239120?style=for-the-badge&logo=c-sharp&logoColor=white)
-![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white)
-![React](https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)
-![Vite](https://img.shields.io/badge/Vite-B73BFE?style=for-the-badge&logo=vite&logoColor=FFD62E)
+![Blazor](https://img.shields.io/badge/Blazor-512BD4?style=for-the-badge&logo=blazor&logoColor=white)
+![.NET Aspire](https://img.shields.io/badge/.NET%20Aspire-512BD4?style=for-the-badge&logo=dotnet&logoColor=white)
 
 <br>
 
@@ -16,7 +15,6 @@
 ![RabbitMQ](https://img.shields.io/badge/RabbitMQ-FF6600?style=for-the-badge&logo=rabbitmq&logoColor=white)
 ![MassTransit](https://img.shields.io/badge/MassTransit-000000?style=for-the-badge)
 ![SignalR](https://img.shields.io/badge/SignalR-0078D4?style=for-the-badge&logo=microsoft&logoColor=white)
-![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white)
 
 <br>
 
@@ -30,10 +28,10 @@
 
 </div>
 
-#  Sistema de Gestão e Aluguel de Tratores (Telemetria IoT & DDD)
+# Sistema de Gestão e Aluguel de Tratores (Telemetria IoT, DDD & Aspire)
 ---
 
-##  O Desafio (Contexto de Negócio)
+## O Desafio (Contexto de Negócio)
 
 Desenvolvimento de uma plataforma escalável capaz de realizar a gestão completa dos contratos de locação de uma frota de tratores. Simultaneamente, o sistema deve ser capaz de processar um fluxo massivo de informações críticas de telemetria enviadas diretamente por sensores **IoT (Internet of Things)** acoplados aos equipamentos.
 
@@ -48,98 +46,81 @@ Os sensores realizam leituras frequentes de indicadores como:
 * **Portal Administrativo:** Visão analítica global da frota, com fila de alertas críticos de manutenção em tempo real.
 * **Portal do Cliente:** Transparência total para o locatário e gestão visual dos contratos de aluguel.
 
-  ##  Conceitos e Padrões de Arquitetura Praticados
+## Conceitos e Padrões de Arquitetura Praticados
 
 * **Domain-Driven Design (DDD):** Foco estratégico nas regras de negócio da aplicação, permitindo o isolamento de contextos delimitados (Bounded Contexts) para Contratos e Telemetria.
-
 * **Event-Driven Architecture (EDA):** Modelagem focada em fluxos de eventos para suportar alta escalabilidade e desacoplamento na recepção contínua de sinais de IoT.
-
 * **CQRS (Command Query Responsibility Segregation):** Estrutura conceitual voltada à separação completa de fluxos de modificação de dados (comandos dos sensores) e fluxos analíticos de exibição (consultas de painéis e extratos de custo dinâmicos).
+* **.NET Aspire:** Orquestração nativa de microsserviços, injeção automática de Service Discovery e Telemetria distribuída (OpenTelemetry).
 
 ---
 
-##  Como Rodar o Projeto
+## Como Rodar o Projeto
+
+Este projeto utiliza **.NET Aspire** para orquestração local, dispensando a necessidade de configurar portas manualmente ou rodar via `docker-compose` para o ambiente de desenvolvimento. O próprio Aspire se encarregará de subir os contêineres necessários (SQL Server, RabbitMQ) via Docker Desktop, além dos projetos .NET da solução.
 
 ### Pré-requisitos
-- [Docker Desktop](https://www.docker.com/products/docker-desktop/) instalado e em execução.
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/) instalado e em execução (para que o Aspire suba o SQL e o RabbitMQ).
+- SDK do .NET 10 instalado.
 
 ### Subindo a aplicação
+
+Você pode rodar diretamente via CLI ou pelo seu Visual Studio/Rider.
+
+**Via CLI:**
 ```bash
-docker-compose up -d --build
+dotnet run --project src/TractorRental.AppHost/TractorRental.AppHost.csproj
 ```
-Esse comando sobe **4 containers**: SQL Server, RabbitMQ, a API e o Worker IoT.
+
+**Via Visual Studio:**
+1. Defina o projeto `TractorRental.AppHost` como projeto de inicialização (*Startup Project*).
+2. Aperte `F5` ou clique em `Run`.
+
+Após compilar, um navegador abrirá o **Painel do .NET Aspire**. Através desse painel, você terá acesso imediato aos endpoints de:
+- **`frontend`** (Portal Administrativo em Blazor)
+- **`api`** (Backend REST e Swagger)
+- Logs, métricas e traces em tempo real de toda a arquitetura.
 
 ---
 
-##  Rotas e Endpoints Disponíveis
+## Interfaces e Rotas Principais (Disponíveis via Painel Aspire)
 
-Após subir a aplicação, a API estará disponível em `http://localhost:5257` e o Front-End React em `http://localhost:5173`.
+### 💻 Portal Administrativo (Blazor Server)
+O Front-End foi modernizado e centralizado no ecossistema .NET através de **Blazor**.
+As rotas da interface incluem:
+- `/` - **Dashboard:** Visão geral com KPIs, distribuição e alertas.
+- `/frota` - **Monitoramento da Frota:** Lista de tratores e status.
+- `/clientes` - **Gestão de Clientes:** Listagem e cadastro de clientes.
+- `/contratos` - **Contratos de Aluguel:** Histórico de locações de maquinário.
+- `/alertas` - **Central de Alertas:** Feed em tempo real de anomalias detectadas (alimentado via SignalR).
 
-### Interfaces Web (Front-End React)
+### ⚙️ API REST e Swagger (`api`)
+A API central de operações fornece endpoints documentados via Swagger.
+- **`GET /swagger`** - Interface interativa de testes.
+- **`POST /api/tratores/telemetria`** - Ponto focal para recepção de dados dos sensores IoT.
+- Outros mapeamentos essenciais de CRUDs (Tratores, Contratos, Clientes).
 
-| Rota | Descrição |
-|---|---|
-| [`/`](http://localhost:5173/) |  **Dashboard Administrativo** — Visão geral com KPIs, distribuição e alertas. |
-| [`/frota`](http://localhost:5173/frota) |  **Monitoramento da Frota** — Gauges em tempo real de telemetria (temperatura, pressão, óleo, RPM) e cadastro de tratores. |
-| [`/clientes`](http://localhost:5173/clientes) |  **Gestão de Clientes** — Listagem em formato *cards* e cadastro de clientes. |
-| [`/contratos`](http://localhost:5173/contratos) |  **Contratos de Aluguel** — Histórico e abertura de novos contratos vinculados a tratores operacionais. |
-| [`/alertas`](http://localhost:5173/alertas) |  **Central de Alertas** — Feed em tempo real de anomalias detectadas via SignalR. |
-| [`/swagger`](http://localhost:5257/swagger) |  **Documentação Interativa da API (Swagger UI)** — Permite testar os endpoints da API (porta 5257). |
-
-### API REST — Gestão de Tratores e Telemetria (`/api/tratores`)
-
-| Método | Rota | Descrição |
-|---|---|---|
-| `POST` | `/api/tratores` | Cadastra um novo equipamento na frota. |
-| `GET` | `/api/tratores/{id}` | Consulta o status atual e as últimas métricas de um trator específico. |
-| `GET` | `/api/tratores/dashboard` | Lista todos os tratores e métricas em alta performance (Dapper + CQRS). |
-| `POST` | `/api/tratores/telemetria` | Recebe carga de dados dos sensores IoT do equipamento. |
-
-### API REST — Gestão de Clientes (`/api/clientes`)
-
-| Método | Rota | Descrição |
-|---|---|---|
-| `POST` | `/api/clientes` | Cadastra um novo cliente no sistema. |
-| `GET` | `/api/clientes` | Lista todos os clientes cadastrados. |
-
-### API REST — Gestão de Contratos de Aluguel (`/api/contratos`)
-
-| Método | Rota | Descrição |
-|---|---|---|
-| `POST` | `/api/contratos` | Abre um novo contrato de aluguel e atualiza o status do equipamento. |
-| `GET` | `/api/contratos` | Lista todo o histórico de contratos da empresa. |
-
-### Tempo Real — SignalR Hub
-
-| Rota | Descrição |
-|---|---|
-| `/hubs/monitoramento` | 📡 Hub SignalR para recebimento de alertas críticos em tempo real. Evento: `ReceberAlerta`. |
-
-### Serviços de Infraestrutura
-
-| Serviço | URL | Descrição |
-|---|---|---|
-| RabbitMQ Management | [`http://localhost:15672`](http://localhost:15672) | Painel de controle do RabbitMQ (usuário: `guest`, senha: `guest`). |
-| SQL Server | `localhost:1433` | Banco de dados (usuário: `sa`, senha: `TractorAdmin@123!`). |
+### 📡 Tempo Real — SignalR Hub
+- `/hubs/monitoramento` - Hub WebSocket para transmissão ao vivo dos alertas críticos para o frontend Blazor (conectado de forma fluida via Service Discovery do Aspire).
 
 ---
 
-##  Tecnologias Utilizadas (Tech Stack)
+## Tecnologias Utilizadas (Tech Stack)
 
-Este projeto foi construído com foco em **Alta Performance, Escalabilidade e Arquitetura Limpa**:
+Este projeto foi construído com foco em **Alta Performance, Escalabilidade e Arquitetura Limpa**, unificando tudo com a robustez do .NET:
 
-* **Frontend:** React, Vite, TypeScript e Vanilla CSS (Design *Glassmorphism*).
-* **Backend:** .NET 10 (Minimal APIs, Background Services).
+* **Frontend:** Blazor Web App (Interactive Server Mode) integrado com Bootstrap.
+* **Backend:** .NET 10 (Minimal APIs, Background Services / IoT Worker).
+* **Orquestração e Observabilidade:** .NET Aspire (OpenTelemetry, Service Defaults).
 * **Arquitetura:** Domain-Driven Design (DDD), Clean Architecture, CQRS, Event-Driven Architecture (EDA).
 * **Mensageria (IoT):** RabbitMQ e MassTransit.
 * **Tempo Real:** SignalR (WebSockets).
-* **Banco de Dados:** SQL Server via Entity Framework Core.
-* **Testes Automatizados:** xUnit, Moq, FluentAssertions (Cobertura 100% no Core Domain).
-* **DevOps:** Docker e Docker Compose (Multi-stage builds isolados).
+* **Banco de Dados:** SQL Server via Entity Framework Core + Dapper para leituras de alta performance.
+* **Testes Automatizados:** xUnit, Moq, FluentAssertions (Cobertura no Core Domain).
 
 ---
 
-##  Engenharia de Software: Fluxo de Event Storming
+## Engenharia de Software: Fluxo de Event Storming
 
 Para solucionar a alta complexidade do domínio, a modelagem seguiu as etapas do Event Storming:
 
@@ -180,20 +161,15 @@ flowchart TD
 
     %% Read Models / Interfaces Prontas
     Evt3 --> Read1
-    Read1[(Portal Admin: Dashboard React + SignalR)]:::readmodel
+    Read1[(Portal Admin: Blazor Server + SignalR)]:::readmodel
 ```
 
 <br>
 
 🟨 Amarelo (Aggregate): Cluster de entidades que encapsula regras de validação e estado.
-
 🟧 Laranja (Domain Event): Mudança significativa ocorrida no negócio. É um dado histórico e imutável.
-
 🟪 Lilás (Policy): Regras automáticas disparadas por eventos assíncronos.
-
 🟩 Verde (Read Model): Projeções e dashboards otimizados para rápida resposta de leitura.
-
-
 
 
 <p align="center">
