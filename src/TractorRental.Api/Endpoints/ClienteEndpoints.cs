@@ -16,18 +16,19 @@ public static class ClienteEndpoints
         {
             var tipoPessoa = Enum.Parse<TipoPessoa>(request.TipoPessoa);
             
-            var documento = new DocumentoIdentificacao(request.Documento, tipoPessoa);
-            var contato = new ContatoOperacional(request.NomeResponsavelOperacional, request.TelefoneOperacional, request.EmailFaturamento);
-            var endereco = new Endereco(request.EnderecoOperacao, request.CidadeOperacao, request.EstadoOperacao);
-
             var cliente = new Cliente(
                 Guid.NewGuid(), 
-                documento, 
+                request.Documento,
+                tipoPessoa,
                 request.RazaoSocialOuNome, 
                 request.InscricaoEstadual, 
                 request.EmailFaturamento, 
-                contato, 
-                endereco);
+                request.NomeResponsavelOperacional,
+                request.TelefoneOperacional,
+                request.EmailFaturamento,
+                request.EnderecoOperacao,
+                request.CidadeOperacao,
+                request.EstadoOperacao);
 
             db.Clientes.Add(cliente);
             await db.SaveChangesAsync();

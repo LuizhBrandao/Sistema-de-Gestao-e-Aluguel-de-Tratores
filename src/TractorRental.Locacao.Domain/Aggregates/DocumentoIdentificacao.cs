@@ -3,7 +3,7 @@ using TractorRental.Locacao.Domain.Enums;
 
 namespace TractorRental.Locacao.Domain.Aggregates;
 
-public record DocumentoIdentificacao
+public class DocumentoIdentificacao
 {
     public string Numero { get; private set; }
     public TipoPessoa Tipo { get; private set; }

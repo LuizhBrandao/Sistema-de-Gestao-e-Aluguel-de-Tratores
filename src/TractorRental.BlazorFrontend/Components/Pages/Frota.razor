@@ -2,51 +2,133 @@
 @using TractorRental.BlazorFrontend.Models
 @inject HttpClient Http
 
-<PageTitle>Frota</PageTitle>
+<PageTitle>Frota de Tratores | TractorRental Pro</PageTitle>
 
 <div class="fade-in">
-    <header class="d-flex justify-content-between align-items-center mb-4">
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
         <div>
-            <h1 style="font-size: 1.8rem; margin: 0;">Frota</h1>
-            <p class="text-muted" style="margin: 0;">Gerenciamento de tratores</p>
+            <h1 class="h3 mb-1">Frota de Equipamentos</h1>
+            <p class="text-muted mb-0">Gerenciamento, telemetria em tempo real e cadastro de tratores</p>
         </div>
-        <button class="btn btn-primary" @onclick="() => modalAberto = true">
-            <span class="bi bi-plus-lg me-2"></span> Novo Trator
-        </button>
-    </header>
+        <div class="d-flex gap-2">
+            <button class="btn btn-secondary-agro" @onclick="CarregarTratores" disabled="@carregando">
+                <i class="bi bi-arrow-clockwise"></i>
+            </button>
+            <button class="btn btn-primary-agro" @onclick="AbrirModalCadastro">
+                <i class="bi bi-plus-lg"></i>
+                <span>Novo Trator</span>
+            </button>
+        </div>
+    </div>
 
-    @if (carregando)
+    <!-- Search & Filter Bar -->
+    <div class="row g-2 mb-4">
+        <div class="col-md-6 col-lg-4">
+            <div class="input-group">
+                <span class="input-group-text bg-dark border-secondary text-muted"><i class="bi bi-search"></i></span>
+                <input type="text" class="form-control" placeholder="Buscar por marca, modelo ou ID..." @bind="termoBusca" @bind:event="oninput" />
+            </div>
+        </div>
+        <div class="col-md-6 col-lg-3">
+            <select class="form-select" @bind="filtroStatus">
+                <option value="">Todos os Status</option>
+                <option value="Operacional">Operacional</option>
+                <option value="Alugado">Alugado</option>
+                <option value="EmManutencao">Em Manutenção</option>
+            </select>
+        </div>
+    </div>
+
+    @if (carregando && tratores.Count == 0)
     {
-        <p><em>Carregando...</em></p>
+        <div class="text-center py-5">
+            <div class="spinner-border text-success" role="status">
+                <span class="visually-hidden">Carregando...</span>
+            </div>
+            <p class="text-muted mt-3">Carregando frota...</p>
+        </div>
     }
     else
     {
-        <div class="card bg-dark text-white border-secondary">
-            <div class="card-body p-0">
-                <table class="table table-dark table-striped table-hover m-0">
+        <div class="app-table-container">
+            <div class="table-responsive">
+                <table class="app-table">
                     <thead>
                         <tr>
-                            <th>Marca</th>
-                            <th>Modelo</th>
+                            <th>Identificação</th>
                             <th>Status</th>
-                            <th>Nível de Combustível</th>
-                            <th>Velocidade</th>
+                            <th>Nível Combustível</th>
+                            <th>Temperatura</th>
+                            <th>Pressão Pneus</th>
+                            <th>RPM / Velocidade</th>
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach (var t in tratores)
+                        @if (!TratoresFiltrados.Any())
                         {
                             <tr>
-                                <td>@t.Marca</td>
-                                <td>@t.Modelo</td>
-                                <td>
-                                    <span class="badge @(t.Status == "Operacional" ? "bg-success" : (t.Status == "Alugado" ? "bg-primary" : "bg-danger"))">
-                                        @t.Status
-                                    </span>
+                                <td colspan="6" class="text-center text-muted py-5">
+                                    <i class="bi bi-inbox fs-2 d-block mb-2"></i>
+                                    Nenhum trator encontrado com os filtros aplicados.
                                 </td>
-                                <td>@(t.NivelCombustivel)%</td>
-                                <td>@(t.Velocidade) km/h</td>
                             </tr>
+                        }
+                        else
+                        {
+                            @foreach (var t in TratoresFiltrados)
+                            {
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center gap-2">
+                                            <span class="fs-4">🚜</span>
+                                            <div>
+                                                <div class="fw-bold text-white">@t.Marca @t.Modelo</div>
+                                                <div class="text-muted small">UUID: @t.Id.ToString()</div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        @if (t.Status == "Operacional")
+                                        {
+                                            <span class="app-badge badge-success"><i class="bi bi-check-circle-fill"></i> Operacional</span>
+                                        }
+                                        else if (t.Status == "Alugado")
+                                        {
+                                            <span class="app-badge badge-info"><i class="bi bi-clock-history"></i> Alugado</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="app-badge badge-danger"><i class="bi bi-tools"></i> Manutenção</span>
+                                        }
+                                    </td>
+                                    <td style="min-width: 140px;">
+                                        <div class="d-flex align-items-center gap-2">
+                                            <div class="progress flex-grow-1 bg-dark" style="height: 6px;">
+                                                <div class="progress-bar @(t.NivelCombustivel < 20 ? "bg-danger" : (t.NivelCombustivel < 40 ? "bg-warning" : "bg-success"))" 
+                                                     style="width: @(Math.Clamp(t.NivelCombustivel, 0, 100))%;">
+                                                </div>
+                                            </div>
+                                            <span class="small fw-semibold">@t.NivelCombustivel.ToString("F0")%</span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="fw-semibold @(t.TemperaturaAtualMotor > 105 ? "text-danger" : "text-white")">
+                                            @t.TemperaturaAtualMotor.ToString("F1") °C
+                                            @if (t.TemperaturaAtualMotor > 105)
+                                            {
+                                                <i class="bi bi-exclamation-triangle-fill text-danger ms-1" title="Alta Temperatura!"></i>
+                                            }
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="text-white">@t.PressaoAtualPneus.ToString("F1") PSI</span>
+                                    </td>
+                                    <td>
+                                        <div class="text-white">@t.RotacaoMotor.ToString("F0") RPM</div>
+                                        <div class="text-muted small">@t.Velocidade.ToString("F1") km/h</div>
+                                    </td>
+                                </tr>
+                            }
                         }
                     </tbody>
                 </table>
@@ -54,54 +136,72 @@
         </div>
     }
 
+    <!-- Modal de Cadastro de Trator -->
     @if (modalAberto)
     {
-        <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
-            <div class="modal-dialog">
-                <div class="modal-content bg-dark text-white border-secondary">
-                    <div class="modal-header border-secondary">
-                        <h5 class="modal-title">Cadastrar Novo Trator</h5>
-                        <button type="button" class="btn-close btn-close-white" @onclick="() => modalAberto = false"></button>
+        <div class="modal fade show d-block app-modal-backdrop" tabindex="-1">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content app-modal-content">
+                    <div class="modal-header app-modal-header">
+                        <h5 class="modal-title text-white d-flex align-items-center gap-2">
+                            <i class="bi bi-plus-circle text-success"></i> Cadastrar Novo Trator
+                        </h5>
+                        <button type="button" class="btn-close btn-close-white" @onclick="FecharModal"></button>
                     </div>
-                    <div class="modal-body">
+                    <div class="modal-body p-4">
                         @if (!string.IsNullOrEmpty(erroForm))
                         {
-                            <div class="alert alert-danger">@erroForm</div>
+                            <div class="alert alert-danger py-2 small mb-3">
+                                <i class="bi bi-exclamation-octagon me-1"></i> @erroForm
+                            </div>
                         }
                         @if (!string.IsNullOrEmpty(sucessoForm))
                         {
-                            <div class="alert alert-success">@sucessoForm</div>
+                            <div class="alert alert-success py-2 small mb-3">
+                                <i class="bi bi-check-circle me-1"></i> @sucessoForm
+                            </div>
                         }
 
-                        <div class="mb-3">
-                            <label class="form-label">Marca</label>
-                            <input class="form-control bg-dark text-white border-secondary" @bind="form.Marca" />
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Modelo</label>
-                            <input class="form-control bg-dark text-white border-secondary" @bind="form.Modelo" />
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Ano de Fabricação</label>
-                            <input type="number" class="form-control bg-dark text-white border-secondary" @bind="form.AnoFabricacao" />
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Potência (CV)</label>
-                            <input type="number" class="form-control bg-dark text-white border-secondary" @bind="form.PotenciaCv" />
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Horímetro Inicial</label>
-                            <input type="number" step="0.1" class="form-control bg-dark text-white border-secondary" @bind="form.HorimetroInicial" />
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Número de Série</label>
-                            <input class="form-control bg-dark text-white border-secondary" @bind="form.NumeroSerie" />
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Marca *</label>
+                                <input class="form-control" placeholder="Ex: John Deere, Valtra, Massey" @bind="form.Marca" />
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Modelo *</label>
+                                <input class="form-control" placeholder="Ex: 8R 370, A940" @bind="form.Modelo" />
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Ano de Fabricação *</label>
+                                <input type="number" class="form-control" @bind="form.AnoFabricacao" />
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Potência (CV) *</label>
+                                <input type="number" class="form-control" placeholder="Ex: 210" @bind="form.PotenciaCv" />
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Horímetro Inicial (h)</label>
+                                <input type="number" step="0.1" class="form-control" @bind="form.HorimetroInicial" />
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Número de Série *</label>
+                                <input class="form-control" placeholder="Ex: JD-8R-99882" @bind="form.NumeroSerie" />
+                            </div>
                         </div>
                     </div>
-                    <div class="modal-footer border-secondary">
-                        <button type="button" class="btn btn-secondary" @onclick="() => modalAberto = false">Cancelar</button>
-                        <button type="button" class="btn btn-primary" @onclick="SalvarTrator" disabled="@enviando">
-                            @(enviando ? "Salvando..." : "Salvar")
+                    <div class="modal-footer app-modal-footer">
+                        <button type="button" class="btn btn-secondary-agro" @onclick="FecharModal">Cancelar</button>
+                        <button type="button" class="btn btn-primary-agro" @onclick="SalvarTrator" disabled="@enviando">
+                            @if (enviando)
+                            {
+                                <span class="spinner-border spinner-border-sm me-2"></span>
+                                <span>Cadastrando...</span>
+                            }
+                            else
+                            {
+                                <i class="bi bi-check2-circle"></i>
+                                <span>Cadastrar Equipamento</span>
+                            }
                         </button>
                     </div>
                 </div>
@@ -117,7 +217,18 @@
     private bool enviando = false;
     private string erroForm = "";
     private string sucessoForm = "";
+    private string termoBusca = "";
+    private string filtroStatus = "";
     private CadastroTratorForm form = new();
+
+    private IEnumerable<TratorDto> TratoresFiltrados =>
+        tratores.Where(t =>
+            (string.IsNullOrWhiteSpace(filtroStatus) || t.Status.Equals(filtroStatus, StringComparison.OrdinalIgnoreCase)) &&
+            (string.IsNullOrWhiteSpace(termoBusca) ||
+             t.Marca.Contains(termoBusca, StringComparison.OrdinalIgnoreCase) ||
+             t.Modelo.Contains(termoBusca, StringComparison.OrdinalIgnoreCase) ||
+             t.Id.ToString().Contains(termoBusca, StringComparison.OrdinalIgnoreCase))
+        );
 
     protected override async Task OnInitializedAsync()
     {
@@ -132,10 +243,27 @@
             var data = await Http.GetFromJsonAsync<List<TratorDto>>("api/tratores/dashboard");
             if (data != null) tratores = data;
         }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Erro ao carregar tratores: {ex.Message}");
+        }
         finally
         {
             carregando = false;
         }
+    }
+
+    private void AbrirModalCadastro()
+    {
+        form = new CadastroTratorForm();
+        erroForm = "";
+        sucessoForm = "";
+        modalAberto = true;
+    }
+
+    private void FecharModal()
+    {
+        modalAberto = false;
     }
 
     private async Task SalvarTrator()
@@ -143,9 +271,10 @@
         erroForm = "";
         sucessoForm = "";
 
-        if (string.IsNullOrWhiteSpace(form.Marca) || string.IsNullOrWhiteSpace(form.Modelo) || !form.AnoFabricacao.HasValue || !form.PotenciaCv.HasValue || string.IsNullOrWhiteSpace(form.NumeroSerie))
+        if (string.IsNullOrWhiteSpace(form.Marca) || string.IsNullOrWhiteSpace(form.Modelo) || 
+            !form.AnoFabricacao.HasValue || !form.PotenciaCv.HasValue || string.IsNullOrWhiteSpace(form.NumeroSerie))
         {
-            erroForm = "Preencha todos os campos obrigatórios.";
+            erroForm = "Preencha todos os campos obrigatórios (*).";
             return;
         }
 
@@ -165,21 +294,19 @@
             if (!response.IsSuccessStatusCode)
             {
                 var erroText = await response.Content.ReadAsStringAsync();
-                erroForm = $"Erro ao cadastrar: {erroText}";
+                erroForm = $"Erro na API: {erroText}";
                 return;
             }
 
-            sucessoForm = "Trator cadastrado com sucesso!";
-            form = new();
+            sucessoForm = "Trator registrado com sucesso no Bounded Context de Frota!";
             await CarregarTratores();
 
-            await Task.Delay(1500);
+            await Task.Delay(1200);
             modalAberto = false;
-            sucessoForm = "";
         }
         catch (Exception ex)
         {
-            erroForm = ex.Message;
+            erroForm = $"Exceção: {ex.Message}";
         }
         finally
         {

@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace TractorRental.Locacao.Infrastructure.Migrations
 {
     /// <inheritdoc />
-    public partial class AddClienteValueObjects : Migration
+    public partial class InitialLocacao : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -16,17 +16,17 @@ namespace TractorRental.Locacao.Infrastructure.Migrations
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    Documento_Numero = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
-                    Documento_TipoPessoa = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    DocumentoNumero = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
+                    DocumentoTipo = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     RazaoSocialOuNome = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
                     InscricaoEstadual = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
                     EmailFaturamento = table.Column<string>(type: "nvarchar(150)", maxLength: 150, nullable: false),
-                    Contato_Nome = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
-                    Contato_Telefone = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
-                    Contato_Email = table.Column<string>(type: "nvarchar(150)", maxLength: 150, nullable: false),
-                    Endereco_Logradouro = table.Column<string>(type: "nvarchar(250)", maxLength: 250, nullable: false),
-                    Endereco_Cidade = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
-                    Endereco_Estado = table.Column<string>(type: "nvarchar(2)", maxLength: 2, nullable: false)
+                    ContatoNome = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
+                    ContatoTelefone = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
+                    ContatoEmail = table.Column<string>(type: "nvarchar(150)", maxLength: 150, nullable: false),
+                    EnderecoLogradouro = table.Column<string>(type: "nvarchar(250)", maxLength: 250, nullable: false),
+                    EnderecoCidade = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    EnderecoEstado = table.Column<string>(type: "nvarchar(2)", maxLength: 2, nullable: false)
                 },
                 constraints: table =>
                 {

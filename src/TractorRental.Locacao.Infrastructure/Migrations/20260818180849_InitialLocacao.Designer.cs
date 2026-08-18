@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using TractorRental.Locacao.Infrastructure.Data;
 
@@ -11,9 +12,11 @@ using TractorRental.Locacao.Infrastructure.Data;
 namespace TractorRental.Locacao.Infrastructure.Migrations
 {
     [DbContext(typeof(LocacaoDbContext))]
-    partial class LocacaoDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260818180849_InitialLocacao")]
+    partial class InitialLocacao
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

@@ -1,0 +1,197 @@
+{
+  "resources": {
+    "rabbitmq": {
+      "type": "container.v0",
+      "connectionString": "amqp://guest:{rabbitmq-password-uri-encoded.value}@{rabbitmq.bindings.tcp.host}:{rabbitmq.bindings.tcp.port}",
+      "image": "docker.io/library/rabbitmq:4.3-management",
+      "env": {
+        "RABBITMQ_DEFAULT_USER": "guest",
+        "RABBITMQ_DEFAULT_PASS": "{rabbitmq-password.value}"
+      },
+      "bindings": {
+        "tcp": {
+          "scheme": "tcp",
+          "protocol": "tcp",
+          "transport": "tcp",
+          "targetPort": 5672
+        },
+        "management": {
+          "scheme": "http",
+          "protocol": "tcp",
+          "transport": "http",
+          "targetPort": 15672
+        }
+      }
+    },
+    "sqlserver": {
+      "type": "container.v0",
+      "connectionString": "Server={sqlserver.bindings.tcp.host},{sqlserver.bindings.tcp.port};User ID=sa;Password={sqlserver-password.value};TrustServerCertificate=true",
+      "image": "mcr.microsoft.com/mssql/server:2022-latest",
+      "env": {
+        "ACCEPT_EULA": "Y",
+        "MSSQL_SA_PASSWORD": "{sqlserver-password.value}"
+      },
+      "bindings": {
+        "tcp": {
+          "scheme": "tcp",
+          "protocol": "tcp",
+          "transport": "tcp",
+          "targetPort": 1433
+        }
+      }
+    },
+    "DefaultConnection": {
+      "type": "value.v0",
+      "connectionString": "{sqlserver.connectionString};Initial Catalog=DefaultConnection"
+    },
+    "api": {
+      "type": "project.v0",
+      "path": "../TractorRental.Api/TractorRental.Api.csproj",
+      "env": {
+        "OTEL_DOTNET_EXPERIMENTAL_OTLP_RETRY": "in_memory",
+        "ASPNETCORE_FORWARDEDHEADERS_ENABLED": "true",
+        "HTTP_PORTS": "{api.bindings.http.targetPort}",
+        "ConnectionStrings__DefaultConnection": "{DefaultConnection.connectionString}",
+        "DEFAULTCONNECTION_HOST": "{sqlserver.bindings.tcp.host}",
+        "DEFAULTCONNECTION_PORT": "{sqlserver.bindings.tcp.port}",
+        "DEFAULTCONNECTION_USERNAME": "sa",
+        "DEFAULTCONNECTION_PASSWORD": "{sqlserver-password.value}",
+        "DEFAULTCONNECTION_URI": "mssql://sa:{sqlserver-password.value}@{sqlserver.bindings.tcp.host}:{sqlserver.bindings.tcp.port}/DefaultConnection",
+        "DEFAULTCONNECTION_JDBCCONNECTIONSTRING": "jdbc:sqlserver://{sqlserver.bindings.tcp.host}:{sqlserver.bindings.tcp.port};databaseName=DefaultConnection;trustServerCertificate=true",
+        "DEFAULTCONNECTION_DATABASENAME": "DefaultConnection",
+        "ConnectionStrings__rabbitmq": "{rabbitmq.connectionString}",
+        "RABBITMQ_HOST": "{rabbitmq.bindings.tcp.host}",
+        "RABBITMQ_PORT": "{rabbitmq.bindings.tcp.port}",
+        "RABBITMQ_USERNAME": "guest",
+        "RABBITMQ_PASSWORD": "{rabbitmq-password.value}",
+        "RABBITMQ_URI": "amqp://guest:{rabbitmq-password-uri-encoded.value}@{rabbitmq.bindings.tcp.host}:{rabbitmq.bindings.tcp.port}"
+      },
+      "bindings": {
+        "http": {
+          "scheme": "http",
+          "protocol": "tcp",
+          "transport": "http"
+        },
+        "https": {
+          "scheme": "https",
+          "protocol": "tcp",
+          "transport": "http"
+        }
+      }
+    },
+    "worker": {
+      "type": "project.v0",
+      "path": "../TractorRental.IoTWorker/TractorRental.IoTWorker.csproj",
+      "env": {
+        "OTEL_DOTNET_EXPERIMENTAL_OTLP_RETRY": "in_memory",
+        "ConnectionStrings__DefaultConnection": "{DefaultConnection.connectionString}",
+        "DEFAULTCONNECTION_HOST": "{sqlserver.bindings.tcp.host}",
+        "DEFAULTCONNECTION_PORT": "{sqlserver.bindings.tcp.port}",
+        "DEFAULTCONNECTION_USERNAME": "sa",
+        "DEFAULTCONNECTION_PASSWORD": "{sqlserver-password.value}",
+        "DEFAULTCONNECTION_URI": "mssql://sa:{sqlserver-password.value}@{sqlserver.bindings.tcp.host}:{sqlserver.bindings.tcp.port}/DefaultConnection",
+        "DEFAULTCONNECTION_JDBCCONNECTIONSTRING": "jdbc:sqlserver://{sqlserver.bindings.tcp.host}:{sqlserver.bindings.tcp.port};databaseName=DefaultConnection;trustServerCertificate=true",
+        "DEFAULTCONNECTION_DATABASENAME": "DefaultConnection",
+        "ConnectionStrings__rabbitmq": "{rabbitmq.connectionString}",
+        "RABBITMQ_HOST": "{rabbitmq.bindings.tcp.host}",
+        "RABBITMQ_PORT": "{rabbitmq.bindings.tcp.port}",
+        "RABBITMQ_USERNAME": "guest",
+        "RABBITMQ_PASSWORD": "{rabbitmq-password.value}",
+        "RABBITMQ_URI": "amqp://guest:{rabbitmq-password-uri-encoded.value}@{rabbitmq.bindings.tcp.host}:{rabbitmq.bindings.tcp.port}"
+      }
+    },
+    "frontend": {
+      "type": "project.v0",
+      "path": "../TractorRental.BlazorFrontend/TractorRental.BlazorFrontend.csproj",
+      "env": {
+        "OTEL_DOTNET_EXPERIMENTAL_OTLP_RETRY": "in_memory",
+        "ASPNETCORE_FORWARDEDHEADERS_ENABLED": "true",
+        "HTTP_PORTS": "{frontend.bindings.http.targetPort}",
+        "API_HTTP": "{api.bindings.http.url}",
+        "services__api__http__0": "{api.bindings.http.url}",
+        "API_HTTPS": "{api.bindings.https.url}",
+        "services__api__https__0": "{api.bindings.https.url}"
+      },
+      "bindings": {
+        "http": {
+          "scheme": "http",
+          "protocol": "tcp",
+          "transport": "http"
+        },
+        "https": {
+          "scheme": "https",
+          "protocol": "tcp",
+          "transport": "http"
+        }
+      }
+    },
+    "spa-frontend": {
+      "type": "container.v1",
+      "build": {
+        "context": "../TractorRental.Frontend",
+        "dockerfile": "../TractorRental.Frontend/Dockerfile"
+      },
+      "env": {
+        "NODE_ENV": "development",
+        "API_HTTP": "{api.bindings.http.url}",
+        "services__api__http__0": "{api.bindings.http.url}",
+        "API_HTTPS": "{api.bindings.https.url}",
+        "services__api__https__0": "{api.bindings.https.url}",
+        "VITE_PORT": "{spa-frontend.bindings.http.targetPort}"
+      },
+      "bindings": {
+        "http": {
+          "scheme": "http",
+          "protocol": "tcp",
+          "transport": "http",
+          "targetPort": 5173,
+          "external": true
+        }
+      }
+    },
+    "rabbitmq-password": {
+      "type": "parameter.v0",
+      "value": "{rabbitmq-password.inputs.value}",
+      "inputs": {
+        "value": {
+          "type": "string",
+          "secret": true,
+          "default": {
+            "generate": {
+              "minLength": 22,
+              "special": false
+            }
+          }
+        }
+      }
+    },
+    "rabbitmq-password-uri-encoded": {
+      "type": "annotated.string",
+      "value": "{rabbitmq-password.value}",
+      "filter": "uri"
+    },
+    "sqlserver-password": {
+      "type": "parameter.v0",
+      "value": "{sqlserver-password.inputs.value}",
+      "inputs": {
+        "value": {
+          "type": "string",
+          "secret": true,
+          "default": {
+            "generate": {
+              "minLength": 22,
+              "minLower": 1,
+              "minUpper": 1,
+              "minNumeric": 1
+            }
+          }
+        }
+      }
+    },
+    "sqlserver-password-uri-encoded": {
+      "type": "annotated.string",
+      "value": "{sqlserver-password.value}",
+      "filter": "uri"
+    }
+  }
+}

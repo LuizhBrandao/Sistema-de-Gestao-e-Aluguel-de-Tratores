@@ -1,75 +1,317 @@
 @page "/clientes"
+@using TractorRental.BlazorFrontend.Models
 @inject HttpClient Http
 
-<PageTitle>Clientes</PageTitle>
+<PageTitle>Clientes | TractorRental Pro</PageTitle>
 
 <div class="fade-in">
-    <header class="d-flex justify-content-between align-items-center mb-4">
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
         <div>
-            <h1 style="font-size: 1.8rem; margin: 0;">Clientes</h1>
-            <p class="text-muted" style="margin: 0;">Gerenciamento de clientes e contatos</p>
+            <h1 class="h3 mb-1">Gestão de Clientes</h1>
+            <p class="text-muted mb-0">Cadastro, consulta e contatos operacionais dos produtores rurais e locatários</p>
         </div>
-        <button class="btn btn-primary">
-            <span class="bi bi-person-plus me-2"></span> Novo Cliente
-        </button>
-    </header>
+        <div class="d-flex gap-2">
+            <button class="btn btn-secondary-agro" @onclick="CarregarClientes" disabled="@carregando">
+                <i class="bi bi-arrow-clockwise"></i>
+            </button>
+            <button class="btn btn-primary-agro" @onclick="AbrirModalCadastro">
+                <i class="bi bi-person-plus-fill"></i>
+                <span>Novo Cliente</span>
+            </button>
+        </div>
+    </div>
 
-    @if (carregando)
+    <!-- Search Bar -->
+    <div class="row g-2 mb-4">
+        <div class="col-md-6 col-lg-4">
+            <div class="input-group">
+                <span class="input-group-text bg-dark border-secondary text-muted"><i class="bi bi-search"></i></span>
+                <input type="text" class="form-control" placeholder="Buscar por nome, documento ou cidade..." @bind="termoBusca" @bind:event="oninput" />
+            </div>
+        </div>
+    </div>
+
+    @if (carregando && clientes.Count == 0)
     {
-        <p><em>Carregando...</em></p>
+        <div class="text-center py-5">
+            <div class="spinner-border text-success" role="status">
+                <span class="visually-hidden">Carregando...</span>
+            </div>
+            <p class="text-muted mt-3">Carregando carteira de clientes...</p>
+        </div>
     }
     else
     {
-        <div class="card bg-dark text-white border-secondary">
-            <div class="card-body p-0">
-                <table class="table table-dark table-striped table-hover m-0">
+        <div class="app-table-container">
+            <div class="table-responsive">
+                <table class="app-table">
                     <thead>
                         <tr>
                             <th>Razão Social / Nome</th>
-                            <th>Documento</th>
-                            <th>Tipo</th>
-                            <th>Email Faturamento</th>
+                            <th>Documento / Tipo</th>
+                            <th>Contato Operacional</th>
+                            <th>E-mail Faturamento</th>
+                            <th>Localidade / Operação</th>
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach (var c in clientes)
+                        @if (!ClientesFiltrados.Any())
                         {
                             <tr>
-                                <td>@c.razaoSocialOuNome</td>
-                                <td>@c.documento</td>
-                                <td>@c.tipoCliente</td>
-                                <td>@c.emailFaturamento</td>
+                                <td colspan="5" class="text-center text-muted py-5">
+                                    <i class="bi bi-people fs-2 d-block mb-2"></i>
+                                    Nenhum cliente encontrado.
+                                </td>
                             </tr>
                         }
-                        @if (!clientes.Any())
+                        else
                         {
-                            <tr><td colspan="4" class="text-center text-muted py-4">Nenhum cliente cadastrado.</td></tr>
+                            @foreach (var c in ClientesFiltrados)
+                            {
+                                <tr>
+                                    <td>
+                                        <div class="fw-bold text-white">@c.RazaoSocialOuNome</div>
+                                        @if (!string.IsNullOrEmpty(c.InscricaoEstadual))
+                                        {
+                                            <div class="text-muted small">IE: @c.InscricaoEstadual</div>
+                                        }
+                                    </td>
+                                    <td>
+                                        <div class="text-white font-monospace">@c.DocumentoNumero</div>
+                                        <span class="badge bg-secondary text-white small" style="font-size: 0.7rem;">@c.TipoDescricao</span>
+                                    </td>
+                                    <td>
+                                        <div class="text-white">@c.ContatoNome</div>
+                                        <div class="text-muted small"><i class="bi bi-telephone me-1"></i>@c.ContatoTelefone</div>
+                                    </td>
+                                    <td>
+                                        <span class="text-muted">@c.EmailFaturamento</span>
+                                    </td>
+                                    <td>
+                                        <div class="text-white">@c.EnderecoCidade - @c.EnderecoEstado</div>
+                                        <div class="text-muted small">@c.EnderecoLogradouro</div>
+                                    </td>
+                                </tr>
+                            }
                         }
                     </tbody>
                 </table>
             </div>
         </div>
     }
+
+    <!-- Modal de Cadastro de Cliente -->
+    @if (modalAberto)
+    {
+        <div class="modal fade show d-block app-modal-backdrop" tabindex="-1">
+            <div class="modal-dialog modal-dialog-centered modal-lg">
+                <div class="modal-content app-modal-content">
+                    <div class="modal-header app-modal-header">
+                        <h5 class="modal-title text-white d-flex align-items-center gap-2">
+                            <i class="bi bi-person-plus-fill text-success"></i> Cadastrar Novo Cliente
+                        </h5>
+                        <button type="button" class="btn-close btn-close-white" @onclick="FecharModal"></button>
+                    </div>
+                    <div class="modal-body p-4">
+                        @if (!string.IsNullOrEmpty(erroForm))
+                        {
+                            <div class="alert alert-danger py-2 small mb-3">
+                                <i class="bi bi-exclamation-octagon me-1"></i> @erroForm
+                            </div>
+                        }
+                        @if (!string.IsNullOrEmpty(sucessoForm))
+                        {
+                            <div class="alert alert-success py-2 small mb-3">
+                                <i class="bi bi-check-circle me-1"></i> @sucessoForm
+                            </div>
+                        }
+
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <label class="form-label">Tipo de Pessoa *</label>
+                                <select class="form-select" @bind="form.TipoPessoa">
+                                    <option value="Juridica">Pessoa Jurídica (CNPJ)</option>
+                                    <option value="Fisica">Pessoa Física (CPF)</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Documento (CPF/CNPJ) *</label>
+                                <input class="form-control" placeholder="Apenas números ou formatado" @bind="form.Documento" />
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Inscrição Estadual</label>
+                                <input class="form-control" placeholder="Opcional" @bind="form.InscricaoEstadual" />
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label">Razão Social / Nome Completo *</label>
+                                <input class="form-control" placeholder="Ex: Agropecuária Santa Maria Ltda" @bind="form.RazaoSocialOuNome" />
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">E-mail para Faturamento *</label>
+                                <input type="email" class="form-control" placeholder="financeiro@empresa.com.br" @bind="form.EmailFaturamento" />
+                            </div>
+
+                            <div class="col-12 mt-3">
+                                <div class="nav-section-title px-0 border-bottom border-secondary border-opacity-25 pb-1">RESPONSÁVEL OPERACIONAL</div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Nome do Contato *</label>
+                                <input class="form-control" placeholder="Ex: Carlos Silva (Gerente de Campo)" @bind="form.NomeResponsavelOperacional" />
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Telefone Operacional *</label>
+                                <input class="form-control" placeholder="Ex: (65) 99988-7766" @bind="form.TelefoneOperacional" />
+                            </div>
+
+                            <div class="col-12 mt-3">
+                                <div class="nav-section-title px-0 border-bottom border-secondary border-opacity-25 pb-1">ENDEREÇO DA OPERAÇÃO / FAZENDA</div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Logradouro / Fazenda *</label>
+                                <input class="form-control" placeholder="Ex: Rodovia MT-130, Km 45, Fazenda Esperança" @bind="form.EnderecoOperacao" />
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Cidade *</label>
+                                <input class="form-control" placeholder="Ex: Primavera do Leste" @bind="form.CidadeOperacao" />
+                            </div>
+                            <div class="col-md-2">
+                                <label class="form-label">UF *</label>
+                                <input class="form-control" placeholder="Ex: MT" maxlength="2" @bind="form.EstadoOperacao" />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer app-modal-footer">
+                        <button type="button" class="btn btn-secondary-agro" @onclick="FecharModal">Cancelar</button>
+                        <button type="button" class="btn btn-primary-agro" @onclick="SalvarCliente" disabled="@enviando">
+                            @if (enviando)
+                            {
+                                <span class="spinner-border spinner-border-sm me-2"></span>
+                                <span>Cadastrando...</span>
+                            }
+                            else
+                            {
+                                <i class="bi bi-check2-circle"></i>
+                                <span>Cadastrar Cliente</span>
+                            }
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
 </div>
 
 @code {
-    private List<dynamic> clientes = new();
+    private List<ClienteDto> clientes = new();
     private bool carregando = true;
+    private bool modalAberto = false;
+    private bool enviando = false;
+    private string erroForm = "";
+    private string sucessoForm = "";
+    private string termoBusca = "";
+    private CadastroClienteForm form = new();
+
+    private IEnumerable<ClienteDto> ClientesFiltrados =>
+        clientes.Where(c =>
+            string.IsNullOrWhiteSpace(termoBusca) ||
+            c.RazaoSocialOuNome.Contains(termoBusca, StringComparison.OrdinalIgnoreCase) ||
+            c.DocumentoNumero.Contains(termoBusca, StringComparison.OrdinalIgnoreCase) ||
+            c.EnderecoCidade.Contains(termoBusca, StringComparison.OrdinalIgnoreCase) ||
+            c.ContatoNome.Contains(termoBusca, StringComparison.OrdinalIgnoreCase)
+        );
 
     protected override async Task OnInitializedAsync()
     {
+        await CarregarClientes();
+    }
+
+    private async Task CarregarClientes()
+    {
+        carregando = true;
         try
         {
-            var data = await Http.GetFromJsonAsync<List<dynamic>>("api/clientes");
+            var data = await Http.GetFromJsonAsync<List<ClienteDto>>("api/clientes");
             if (data != null) clientes = data;
         }
         catch (Exception ex)
         {
-            Console.WriteLine(ex.Message);
+            Console.WriteLine($"Erro ao carregar clientes: {ex.Message}");
         }
         finally
         {
             carregando = false;
+        }
+    }
+
+    private void AbrirModalCadastro()
+    {
+        form = new CadastroClienteForm();
+        erroForm = "";
+        sucessoForm = "";
+        modalAberto = true;
+    }
+
+    private void FecharModal()
+    {
+        modalAberto = false;
+    }
+
+    private async Task SalvarCliente()
+    {
+        erroForm = "";
+        sucessoForm = "";
+
+        if (string.IsNullOrWhiteSpace(form.Documento) ||
+            string.IsNullOrWhiteSpace(form.RazaoSocialOuNome) ||
+            string.IsNullOrWhiteSpace(form.EmailFaturamento) ||
+            string.IsNullOrWhiteSpace(form.NomeResponsavelOperacional) ||
+            string.IsNullOrWhiteSpace(form.TelefoneOperacional) ||
+            string.IsNullOrWhiteSpace(form.EnderecoOperacao) ||
+            string.IsNullOrWhiteSpace(form.CidadeOperacao) ||
+            string.IsNullOrWhiteSpace(form.EstadoOperacao))
+        {
+            erroForm = "Preencha todos os campos obrigatórios (*).";
+            return;
+        }
+
+        enviando = true;
+        try
+        {
+            var response = await Http.PostAsJsonAsync("api/clientes", new
+            {
+                tipoPessoa = form.TipoPessoa,
+                documento = form.Documento,
+                razaoSocialOuNome = form.RazaoSocialOuNome,
+                inscricaoEstadual = form.InscricaoEstadual,
+                emailFaturamento = form.EmailFaturamento,
+                nomeResponsavelOperacional = form.NomeResponsavelOperacional,
+                telefoneOperacional = form.TelefoneOperacional,
+                enderecoOperacao = form.EnderecoOperacao,
+                cidadeOperacao = form.CidadeOperacao,
+                estadoOperacao = form.EstadoOperacao
+            });
+
+            if (!response.IsSuccessStatusCode)
+            {
+                var erroText = await response.Content.ReadAsStringAsync();
+                erroForm = $"Erro na API: {erroText}";
+                return;
+            }
+
+            sucessoForm = "Cliente cadastrado com sucesso no Bounded Context de Locação!";
+            await CarregarClientes();
+
+            await Task.Delay(1200);
+            modalAberto = false;
+        }
+        catch (Exception ex)
+        {
+            erroForm = $"Exceção: {ex.Message}";
+        }
+        finally
+        {
+            enviando = false;
         }
     }
 }

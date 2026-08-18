@@ -1,42 +1,55 @@
-<div class="top-row ps-3 navbar navbar-dark">
-    <div class="container-fluid">
-        <a class="navbar-brand" href="">TractorRental.BlazorFrontend</a>
+<div class="top-row navbar navbar-dark">
+    <div class="container-fluid px-3">
+        <a class="navbar-brand d-flex align-items-center gap-2" href="">
+            <span class="brand-icon">🚜</span>
+            <div class="d-flex flex-column">
+                <span class="brand-text">TractorRental</span>
+                <span class="brand-subtext">Gestão & Locação</span>
+            </div>
+        </a>
     </div>
 </div>
 
 <input type="checkbox" title="Navigation menu" class="navbar-toggler" />
 
 <div class="nav-scrollable" onclick="document.querySelector('.navbar-toggler').click()">
-    <nav class="nav flex-column">
-        <div class="nav-item px-3">
+    <nav class="nav flex-column gap-1 p-3">
+        <div class="nav-section-title">PAINEL PRINCIPAL</div>
+        <div class="nav-item">
             <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
-                <span class="bi bi-house me-3" aria-hidden="true"></span> Dashboard
+                <i class="bi bi-grid-1x2-fill nav-icon"></i>
+                <span>Dashboard</span>
             </NavLink>
         </div>
 
-        <div class="nav-item px-3">
+        <div class="nav-section-title mt-3">OPERAÇÃO & FROTA</div>
+        <div class="nav-item">
             <NavLink class="nav-link" href="frota">
-                <span class="bi bi-truck me-3" aria-hidden="true"></span> Frota
+                <i class="bi bi-truck-front-fill nav-icon"></i>
+                <span>Frota de Tratores</span>
             </NavLink>
         </div>
 
-        <div class="nav-item px-3">
+        <div class="nav-item">
             <NavLink class="nav-link" href="clientes">
-                <span class="bi bi-person me-3" aria-hidden="true"></span> Clientes
+                <i class="bi bi-people-fill nav-icon"></i>
+                <span>Clientes</span>
             </NavLink>
         </div>
 
-        <div class="nav-item px-3">
+        <div class="nav-item">
             <NavLink class="nav-link" href="contratos">
-                <span class="bi bi-file-earmark-text me-3" aria-hidden="true"></span> Contratos
+                <i class="bi bi-file-earmark-text-fill nav-icon"></i>
+                <span>Contratos</span>
             </NavLink>
         </div>
 
-        <div class="nav-item px-3">
+        <div class="nav-section-title mt-3">TELEMETRIA & IOT</div>
+        <div class="nav-item">
             <NavLink class="nav-link" href="alertas">
-                <span class="bi bi-exclamation-triangle me-3" aria-hidden="true"></span> Alertas
+                <i class="bi bi-broadcast nav-icon pulse-icon"></i>
+                <span>Alertas em Tempo Real</span>
             </NavLink>
         </div>
     </nav>
 </div>
-

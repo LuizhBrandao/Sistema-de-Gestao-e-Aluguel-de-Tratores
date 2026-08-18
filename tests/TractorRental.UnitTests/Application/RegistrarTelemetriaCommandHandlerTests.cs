@@ -31,7 +31,7 @@ public class RegistrarTelemetriaCommandHandlerTests
 
         // Deve ter publicado TelemetriaProcessadaIntegrationEvent
         _mediatorMock.Verify(m => m.Publish(
-            It.Is<object>(e => e is TelemetriaProcessadaIntegrationEvent),
+            It.IsAny<TelemetriaProcessadaIntegrationEvent>(),
             It.IsAny<CancellationToken>()), Times.Once);
     }
 }

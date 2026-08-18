@@ -1,4 +1,4 @@
-﻿@inherits LayoutComponentBase
+@inherits LayoutComponentBase
 
 <div class="page">
     <div class="sidebar">
@@ -6,18 +6,39 @@
     </div>
 
     <main>
-        <div class="top-row px-4">
-            <a href="https://learn.microsoft.com/aspnet/core/" target="_blank">About</a>
-        </div>
+        <header class="top-header">
+            <div class="d-flex align-items-center gap-3">
+                <span class="fw-bold text-white fs-6 d-none d-sm-inline">🚜 TractorRental Pro</span>
+                <span class="system-badge">
+                    <span class="status-dot"></span> Telemetria & API Ativa
+                </span>
+            </div>
 
-        <article class="content px-4">
+            <div class="d-flex align-items-center gap-3">
+                <div class="d-flex align-items-center gap-2 text-muted small">
+                    <i class="bi bi-clock"></i>
+                    <span>@DateTime.Now.ToString("dd/MM/yyyy")</span>
+                </div>
+                <div class="user-pill d-flex align-items-center gap-2">
+                    <div class="avatar-circle">
+                        <i class="bi bi-person-fill"></i>
+                    </div>
+                    <div class="d-none d-md-block text-start">
+                        <div class="user-name">Central Operacional</div>
+                        <div class="user-role">Gestor de Frota</div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <article class="content px-4 py-4">
             @Body
         </article>
     </main>
 </div>
 
 <div id="blazor-error-ui" data-nosnippet>
-    An unhandled error has occurred.
-    <a href="." class="reload">Reload</a>
+    Ocorreu um erro não tratado.
+    <a href="." class="reload">Recarregar</a>
     <span class="dismiss">🗙</span>
 </div>

@@ -28,7 +28,7 @@ public class RiscoManutencaoPolicyTests
 
         // Assert — Deve ter publicado AnomaliaDetectadaIntegrationEvent
         _mediatorMock.Verify(m => m.Publish(
-            It.Is<object>(e => e is AnomaliaDetectadaIntegrationEvent),
+            It.IsAny<AnomaliaDetectadaIntegrationEvent>(),
             It.IsAny<CancellationToken>()), Times.Once);
     }
 
@@ -44,7 +44,7 @@ public class RiscoManutencaoPolicyTests
 
         // Assert
         _mediatorMock.Verify(m => m.Publish(
-            It.Is<object>(e => e is AnomaliaDetectadaIntegrationEvent),
+            It.IsAny<AnomaliaDetectadaIntegrationEvent>(),
             It.IsAny<CancellationToken>()), Times.Once);
     }
 

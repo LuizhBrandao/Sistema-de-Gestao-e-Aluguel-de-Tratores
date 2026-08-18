@@ -1,6 +1,6 @@
 namespace TractorRental.Locacao.Domain.Aggregates;
 
-public record Endereco
+public class Endereco
 {
     public string Logradouro { get; private set; }
     public string Cidade { get; private set; }

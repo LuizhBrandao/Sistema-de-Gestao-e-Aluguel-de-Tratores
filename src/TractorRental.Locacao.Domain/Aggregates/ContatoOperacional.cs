@@ -1,6 +1,6 @@
 namespace TractorRental.Locacao.Domain.Aggregates;
 
-public record ContatoOperacional
+public class ContatoOperacional
 {
     public string Nome { get; private set; }
     public string Telefone { get; private set; }

@@ -4,44 +4,87 @@
 @inject IHttpClientFactory ClientFactory
 @implements IAsyncDisposable
 
-<PageTitle>Alertas de Telemetria</PageTitle>
+<PageTitle>Alertas de Telemetria IoT | TractorRental Pro</PageTitle>
 
 <div class="fade-in">
-    <header class="mb-4">
-        <h1 style="font-size: 1.8rem; margin: 0;">Alertas em Tempo Real</h1>
-        <p class="text-muted" style="margin: 0;">Monitoramento de anomalias na frota</p>
-    </header>
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+        <div>
+            <h1 class="h3 mb-1">Central de Telemetria & Alertas</h1>
+            <p class="text-muted mb-0">Monitoramento contínuo de anomalias mecânicas e eventos críticos via SignalR & RabbitMQ</p>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+            @if (alertas.Any())
+            {
+                <button class="btn btn-secondary-agro btn-sm" @onclick="LimparAlertas">
+                    <i class="bi bi-trash3"></i> Limpar Alertas
+                </button>
+            }
+            <button class="btn btn-secondary-agro btn-sm" @onclick="ReconectarHub" disabled="@(hubConnection?.State == HubConnectionState.Connected)">
+                <i class="bi bi-arrow-repeat"></i> Reconectar
+            </button>
+        </div>
+    </div>
 
-    <div class="mb-3">
-        Status da Conexão: 
-        <span class="badge @(isConnected ? "bg-success" : "bg-danger")">
-            @(isConnected ? "Conectado" : "Desconectado")
+    <!-- Connection State Banner -->
+    <div class="metric-card mb-4 p-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <div class="d-flex align-items-center gap-3">
+            <span class="status-dot @(isConnected ? "" : (hubConnection?.State == HubConnectionState.Reconnecting ? "warning" : "danger"))"></span>
+            <div>
+                <div class="fw-bold text-white">Status da Conexão SignalR:</div>
+                <div class="text-muted small">
+                    @(isConnected ? "Recebendo telemetria via WebSocket em tempo real (/hubs/monitoramento)" : "Conexão inativa ou aguardando resposta da API")
+                </div>
+            </div>
+        </div>
+        <span class="app-badge @(isConnected ? "badge-success" : "badge-danger")">
+            @(isConnected ? "Hub Online" : "Desconectado")
         </span>
     </div>
 
+    <!-- Alert List -->
     @if (!alertas.Any())
     {
-        <div class="alert alert-info">Nenhum alerta recente.</div>
+        <div class="app-table-container p-5 text-center">
+            <div class="fs-1 text-success mb-3">
+                <i class="bi bi-shield-check"></i>
+            </div>
+            <h2 class="h5 text-white mb-1">Tudo Operando Dentro dos Parâmetros Normais</h2>
+            <p class="text-muted mb-0">Nenhuma anomalia crítica ou superaquecimento foi detectado nos tratores monitorados recentemente.</p>
+        </div>
     }
     else
     {
         <div class="d-flex flex-column gap-3">
             @foreach (var alerta in alertas)
             {
-                <div class="card bg-dark text-white border-warning">
-                    <div class="card-body d-flex align-items-center gap-3">
-                        <div class="fs-2">@(alerta.Temperatura > 110 ? "🚨" : "⚠️")</div>
-                        <div class="flex-grow-1">
-                            <h5 class="card-title mb-1">Trator #@alerta.TratorId</h5>
-                            <p class="card-text text-muted mb-0">
-                                @alerta.Mensagem 
-                                @if (alerta.Temperatura.HasValue)
-                                {
-                                    <span>(Temp: @alerta.Temperatura.Value.ToString("F1")°C)</span>
-                                }
-                            </p>
+                var isCritico = alerta.Temperatura.HasValue && alerta.Temperatura.Value > 110;
+                <div class="metric-card p-3 @(isCritico ? "border-danger" : "border-warning")" style="background: @(isCritico ? "rgba(255, 71, 87, 0.06)" : "rgba(255, 165, 2, 0.05)");">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="fs-1 @(isCritico ? "text-danger" : "text-warning")">
+                            <i class="bi @(isCritico ? "bi-exclamation-octagon-fill" : "bi-exclamation-triangle-fill")"></i>
                         </div>
-                        <div class="text-muted small">@alerta.Timestamp.ToLocalTime().ToString("HH:mm:ss")</div>
+                        <div class="flex-grow-1">
+                            <div class="d-flex align-items-center gap-2 mb-1">
+                                <span class="app-badge @(isCritico ? "badge-danger" : "badge-warning")">
+                                    @(isCritico ? "Crítico - Motor" : "Aviso Operacional")
+                                </span>
+                                <span class="fw-bold text-white font-monospace">Trator UUID: @alerta.TratorId</span>
+                            </div>
+                            <div class="text-white fs-6 mb-1">
+                                @alerta.Mensagem
+                            </div>
+                            @if (alerta.Temperatura.HasValue)
+                            {
+                                <div class="text-muted small">
+                                    <i class="bi bi-thermometer-half text-danger me-1"></i> Temperatura Registrada: 
+                                    <strong class="text-white">@alerta.Temperatura.Value.ToString("F1") °C</strong> (Limite Seguro: 105 °C)
+                                </div>
+                            }
+                        </div>
+                        <div class="text-end text-muted small">
+                            <div class="fw-bold text-white">@alerta.Timestamp.ToLocalTime().ToString("HH:mm:ss")</div>
+                            <div>@alerta.Timestamp.ToLocalTime().ToString("dd/MM/yyyy")</div>
+                        </div>
                     </div>
                 </div>
             }
@@ -56,47 +99,72 @@
 
     protected override async Task OnInitializedAsync()
     {
-        var client = ClientFactory.CreateClient("api");
+        await IniciarConexaoSignalR();
+    }
 
-        hubConnection = new HubConnectionBuilder()
-            .WithUrl(new Uri(client.BaseAddress!, "hubs/monitoramento"), options => 
-            {
-                // In Blazor Server, we must ensure SignalR uses the same Service Discovery configured via Aspire
-                // But typically WithUrl with an absolute resolved URI from HttpClient works fine.
-            })
-            .WithAutomaticReconnect()
-            .Build();
-
-        hubConnection.On<dynamic>("ReceberAlerta", alertaDin =>
-        {
-            var alertaStr = System.Text.Json.JsonSerializer.Serialize(alertaDin);
-            var alerta = System.Text.Json.JsonSerializer.Deserialize<AlertaDto>(alertaStr, new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-            
-            if (alerta != null)
-            {
-                alerta.Timestamp = DateTime.UtcNow;
-                InvokeAsync(() =>
-                {
-                    alertas.Insert(0, alerta);
-                    if (alertas.Count > 15) alertas.RemoveAt(alertas.Count - 1);
-                    StateHasChanged();
-                });
-            }
-        });
-
+    private async Task IniciarConexaoSignalR()
+    {
         try
         {
+            var client = ClientFactory.CreateClient("api");
+            var hubUri = new Uri(client.BaseAddress!, "hubs/monitoramento");
+
+            hubConnection = new HubConnectionBuilder()
+                .WithUrl(hubUri)
+                .WithAutomaticReconnect()
+                .Build();
+
+            hubConnection.On<dynamic>("ReceberAlerta", alertaDin =>
+            {
+                try
+                {
+                    var alertaStr = System.Text.Json.JsonSerializer.Serialize(alertaDin);
+                    var alerta = System.Text.Json.JsonSerializer.Deserialize<AlertaDto>(alertaStr, new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                    
+                    if (alerta != null)
+                    {
+                        alerta.Timestamp = DateTime.UtcNow;
+                        InvokeAsync(() =>
+                        {
+                            alertas.Insert(0, alerta);
+                            if (alertas.Count > 25) alertas.RemoveAt(alertas.Count - 1);
+                            StateHasChanged();
+                        });
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Erro ao desserializar alerta SignalR: {ex.Message}");
+                }
+            });
+
             await hubConnection.StartAsync();
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Erro ao conectar no SignalR: {ex.Message}");
+            Console.WriteLine($"Erro ao conectar ao SignalR Hub: {ex.Message}");
         }
+    }
+
+    private async Task ReconectarHub()
+    {
+        if (hubConnection != null)
+        {
+            await hubConnection.DisposeAsync();
+        }
+        await IniciarConexaoSignalR();
+    }
+
+    private void LimparAlertas()
+    {
+        alertas.Clear();
     }
 
     public async ValueTask DisposeAsync()
     {
-        if (hubConnection is null) return;
-        await hubConnection.DisposeAsync();
+        if (hubConnection is not null)
+        {
+            await hubConnection.DisposeAsync();
+        }
     }
 }
