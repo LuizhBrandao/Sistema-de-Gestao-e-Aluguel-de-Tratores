@@ -85,7 +85,7 @@ Após compilar, um navegador abrirá o **Painel do .NET Aspire**. Através desse
 
 ## Interfaces e Rotas Principais (Disponíveis via Painel Aspire)
 
-### 💻 Portal Administrativo (Blazor Server)
+###  Portal Administrativo (Blazor Server)
 O Front-End foi modernizado e centralizado no ecossistema .NET através de **Blazor**.
 As rotas da interface incluem:
 - `/` - **Dashboard:** Visão geral com KPIs, distribuição e alertas.
@@ -94,13 +94,13 @@ As rotas da interface incluem:
 - `/contratos` - **Contratos de Aluguel:** Histórico de locações de maquinário.
 - `/alertas` - **Central de Alertas:** Feed em tempo real de anomalias detectadas (alimentado via SignalR).
 
-### ⚙️ API REST e Swagger (`api`)
+###  API REST e Swagger (`api`)
 A API central de operações fornece endpoints documentados via Swagger.
 - **`GET /swagger`** - Interface interativa de testes.
 - **`POST /api/tratores/telemetria`** - Ponto focal para recepção de dados dos sensores IoT.
 - Outros mapeamentos essenciais de CRUDs (Tratores, Contratos, Clientes).
 
-### 📡 Tempo Real — SignalR Hub
+###  Tempo Real — SignalR Hub
 - `/hubs/monitoramento` - Hub WebSocket para transmissão ao vivo dos alertas críticos para o frontend Blazor (conectado de forma fluida via Service Discovery do Aspire).
 
 ---
@@ -167,8 +167,11 @@ flowchart TD
 <br>
 
 🟨 Amarelo (Aggregate): Cluster de entidades que encapsula regras de validação e estado.
+
 🟧 Laranja (Domain Event): Mudança significativa ocorrida no negócio. É um dado histórico e imutável.
+
 🟪 Lilás (Policy): Regras automáticas disparadas por eventos assíncronos.
+
 🟩 Verde (Read Model): Projeções e dashboards otimizados para rápida resposta de leitura.
 
 
