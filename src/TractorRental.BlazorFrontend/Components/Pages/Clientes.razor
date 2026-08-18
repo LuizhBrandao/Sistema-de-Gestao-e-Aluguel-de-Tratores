@@ -1,0 +1,75 @@
+@page "/clientes"
+@inject HttpClient Http
+
+<PageTitle>Clientes</PageTitle>
+
+<div class="fade-in">
+    <header class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 style="font-size: 1.8rem; margin: 0;">Clientes</h1>
+            <p class="text-muted" style="margin: 0;">Gerenciamento de clientes e contatos</p>
+        </div>
+        <button class="btn btn-primary">
+            <span class="bi bi-person-plus me-2"></span> Novo Cliente
+        </button>
+    </header>
+
+    @if (carregando)
+    {
+        <p><em>Carregando...</em></p>
+    }
+    else
+    {
+        <div class="card bg-dark text-white border-secondary">
+            <div class="card-body p-0">
+                <table class="table table-dark table-striped table-hover m-0">
+                    <thead>
+                        <tr>
+                            <th>Razão Social / Nome</th>
+                            <th>Documento</th>
+                            <th>Tipo</th>
+                            <th>Email Faturamento</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var c in clientes)
+                        {
+                            <tr>
+                                <td>@c.razaoSocialOuNome</td>
+                                <td>@c.documento</td>
+                                <td>@c.tipoCliente</td>
+                                <td>@c.emailFaturamento</td>
+                            </tr>
+                        }
+                        @if (!clientes.Any())
+                        {
+                            <tr><td colspan="4" class="text-center text-muted py-4">Nenhum cliente cadastrado.</td></tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    private List<dynamic> clientes = new();
+    private bool carregando = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var data = await Http.GetFromJsonAsync<List<dynamic>>("api/clientes");
+            if (data != null) clientes = data;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.Message);
+        }
+        finally
+        {
+            carregando = false;
+        }
+    }
+}

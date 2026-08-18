@@ -1,0 +1,189 @@
+@page "/frota"
+@using TractorRental.BlazorFrontend.Models
+@inject HttpClient Http
+
+<PageTitle>Frota</PageTitle>
+
+<div class="fade-in">
+    <header class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 style="font-size: 1.8rem; margin: 0;">Frota</h1>
+            <p class="text-muted" style="margin: 0;">Gerenciamento de tratores</p>
+        </div>
+        <button class="btn btn-primary" @onclick="() => modalAberto = true">
+            <span class="bi bi-plus-lg me-2"></span> Novo Trator
+        </button>
+    </header>
+
+    @if (carregando)
+    {
+        <p><em>Carregando...</em></p>
+    }
+    else
+    {
+        <div class="card bg-dark text-white border-secondary">
+            <div class="card-body p-0">
+                <table class="table table-dark table-striped table-hover m-0">
+                    <thead>
+                        <tr>
+                            <th>Marca</th>
+                            <th>Modelo</th>
+                            <th>Status</th>
+                            <th>Nível de Combustível</th>
+                            <th>Velocidade</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var t in tratores)
+                        {
+                            <tr>
+                                <td>@t.Marca</td>
+                                <td>@t.Modelo</td>
+                                <td>
+                                    <span class="badge @(t.Status == "Operacional" ? "bg-success" : (t.Status == "Alugado" ? "bg-primary" : "bg-danger"))">
+                                        @t.Status
+                                    </span>
+                                </td>
+                                <td>@(t.NivelCombustivel)%</td>
+                                <td>@(t.Velocidade) km/h</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+
+    @if (modalAberto)
+    {
+        <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+            <div class="modal-dialog">
+                <div class="modal-content bg-dark text-white border-secondary">
+                    <div class="modal-header border-secondary">
+                        <h5 class="modal-title">Cadastrar Novo Trator</h5>
+                        <button type="button" class="btn-close btn-close-white" @onclick="() => modalAberto = false"></button>
+                    </div>
+                    <div class="modal-body">
+                        @if (!string.IsNullOrEmpty(erroForm))
+                        {
+                            <div class="alert alert-danger">@erroForm</div>
+                        }
+                        @if (!string.IsNullOrEmpty(sucessoForm))
+                        {
+                            <div class="alert alert-success">@sucessoForm</div>
+                        }
+
+                        <div class="mb-3">
+                            <label class="form-label">Marca</label>
+                            <input class="form-control bg-dark text-white border-secondary" @bind="form.Marca" />
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Modelo</label>
+                            <input class="form-control bg-dark text-white border-secondary" @bind="form.Modelo" />
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Ano de Fabricação</label>
+                            <input type="number" class="form-control bg-dark text-white border-secondary" @bind="form.AnoFabricacao" />
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Potência (CV)</label>
+                            <input type="number" class="form-control bg-dark text-white border-secondary" @bind="form.PotenciaCv" />
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Horímetro Inicial</label>
+                            <input type="number" step="0.1" class="form-control bg-dark text-white border-secondary" @bind="form.HorimetroInicial" />
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Número de Série</label>
+                            <input class="form-control bg-dark text-white border-secondary" @bind="form.NumeroSerie" />
+                        </div>
+                    </div>
+                    <div class="modal-footer border-secondary">
+                        <button type="button" class="btn btn-secondary" @onclick="() => modalAberto = false">Cancelar</button>
+                        <button type="button" class="btn btn-primary" @onclick="SalvarTrator" disabled="@enviando">
+                            @(enviando ? "Salvando..." : "Salvar")
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    private List<TratorDto> tratores = new();
+    private bool carregando = true;
+    private bool modalAberto = false;
+    private bool enviando = false;
+    private string erroForm = "";
+    private string sucessoForm = "";
+    private CadastroTratorForm form = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CarregarTratores();
+    }
+
+    private async Task CarregarTratores()
+    {
+        carregando = true;
+        try
+        {
+            var data = await Http.GetFromJsonAsync<List<TratorDto>>("api/tratores/dashboard");
+            if (data != null) tratores = data;
+        }
+        finally
+        {
+            carregando = false;
+        }
+    }
+
+    private async Task SalvarTrator()
+    {
+        erroForm = "";
+        sucessoForm = "";
+
+        if (string.IsNullOrWhiteSpace(form.Marca) || string.IsNullOrWhiteSpace(form.Modelo) || !form.AnoFabricacao.HasValue || !form.PotenciaCv.HasValue || string.IsNullOrWhiteSpace(form.NumeroSerie))
+        {
+            erroForm = "Preencha todos os campos obrigatórios.";
+            return;
+        }
+
+        enviando = true;
+        try
+        {
+            var response = await Http.PostAsJsonAsync("api/tratores", new
+            {
+                marca = form.Marca,
+                modelo = form.Modelo,
+                anoFabricacao = form.AnoFabricacao.Value,
+                potenciaCv = form.PotenciaCv.Value,
+                horimetroInicial = form.HorimetroInicial ?? 0,
+                numeroSerie = form.NumeroSerie
+            });
+
+            if (!response.IsSuccessStatusCode)
+            {
+                var erroText = await response.Content.ReadAsStringAsync();
+                erroForm = $"Erro ao cadastrar: {erroText}";
+                return;
+            }
+
+            sucessoForm = "Trator cadastrado com sucesso!";
+            form = new();
+            await CarregarTratores();
+
+            await Task.Delay(1500);
+            modalAberto = false;
+            sucessoForm = "";
+        }
+        catch (Exception ex)
+        {
+            erroForm = ex.Message;
+        }
+        finally
+        {
+            enviando = false;
+        }
+    }
+}

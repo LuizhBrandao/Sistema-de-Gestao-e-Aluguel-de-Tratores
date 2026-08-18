@@ -18,11 +18,8 @@ var worker = builder.AddProject<Projects.TractorRental_IoTWorker>("worker")
                     .WaitFor(sql)
                     .WaitFor(rabbitmq);
 
-builder.AddNpmApp("frontend", "../TractorRental.Frontend", "dev")
+builder.AddProject<Projects.TractorRental_BlazorFrontend>("frontend")
        .WithReference(api)
-       .WaitFor(api)
-       .WithHttpEndpoint(env: "PORT")
-       .WithExternalHttpEndpoints()
-       .PublishAsDockerFile();
+       .WaitFor(api);
 
 builder.Build().Run();

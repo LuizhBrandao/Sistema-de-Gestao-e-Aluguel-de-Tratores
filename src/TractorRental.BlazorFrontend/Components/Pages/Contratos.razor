@@ -1,0 +1,83 @@
+@page "/contratos"
+@inject HttpClient Http
+
+<PageTitle>Contratos</PageTitle>
+
+<div class="fade-in">
+    <header class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 style="font-size: 1.8rem; margin: 0;">Contratos</h1>
+            <p class="text-muted" style="margin: 0;">Gerenciamento de contratos de locação</p>
+        </div>
+        <button class="btn btn-primary">
+            <span class="bi bi-file-earmark-plus me-2"></span> Novo Contrato
+        </button>
+    </header>
+
+    @if (carregando)
+    {
+        <p><em>Carregando...</em></p>
+    }
+    else
+    {
+        <div class="card bg-dark text-white border-secondary">
+            <div class="card-body p-0">
+                <table class="table table-dark table-striped table-hover m-0">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Cliente</th>
+                            <th>Data Início</th>
+                            <th>Data Prevista Término</th>
+                            <th>Status</th>
+                            <th>Valor Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var c in contratos)
+                        {
+                            <tr>
+                                <td>@c.id.ToString().Substring(0, 8)...</td>
+                                <td>@c.clienteId</td>
+                                <td>@c.dataInicio</td>
+                                <td>@c.dataTerminoPrevista</td>
+                                <td>
+                                    <span class="badge @(c.status == "Ativo" ? "bg-success" : (c.status == "Encerrado" ? "bg-secondary" : "bg-warning"))">
+                                        @c.status
+                                    </span>
+                                </td>
+                                <td>@c.valorTotalEstimado.ToString("C")</td>
+                            </tr>
+                        }
+                        @if (!contratos.Any())
+                        {
+                            <tr><td colspan="6" class="text-center text-muted py-4">Nenhum contrato cadastrado.</td></tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    private List<dynamic> contratos = new();
+    private bool carregando = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var data = await Http.GetFromJsonAsync<List<dynamic>>("api/contratos");
+            if (data != null) contratos = data;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.Message);
+        }
+        finally
+        {
+            carregando = false;
+        }
+    }
+}

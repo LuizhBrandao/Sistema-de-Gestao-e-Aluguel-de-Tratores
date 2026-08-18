@@ -1,0 +1,112 @@
+@page "/"
+@using TractorRental.BlazorFrontend.Models
+@inject HttpClient Http
+
+<PageTitle>Dashboard</PageTitle>
+
+<div class="fade-in">
+    <header class="page-header mb-4">
+        <h1 style="font-size: 1.8rem; margin: 0;">Dashboard</h1>
+        <p class="page-subtitle text-muted" style="margin: 0;">Visão geral da frota e operações</p>
+    </header>
+
+    @if (carregando)
+    {
+        <p><em>Carregando...</em></p>
+    }
+    else
+    {
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="card text-white bg-dark mb-3">
+                    <div class="card-body">
+                        <h5 class="card-title text-muted text-uppercase" style="font-size: 0.85rem; letter-spacing: 0.05em;">🚜 Total de Tratores</h5>
+                        <p class="card-text" style="font-size: 2.5rem;">@tratores.Count</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-white bg-dark mb-3">
+                    <div class="card-body">
+                        <h5 class="card-title text-muted text-uppercase" style="font-size: 0.85rem; letter-spacing: 0.05em;">✅ Operacionais</h5>
+                        <p class="card-text" style="font-size: 2.5rem;">@operacionais</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-white bg-dark mb-3">
+                    <div class="card-body">
+                        <h5 class="card-title text-muted text-uppercase" style="font-size: 0.85rem; letter-spacing: 0.05em;">📋 Alugados</h5>
+                        <p class="card-text" style="font-size: 2.5rem;">@alugados</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-white bg-dark mb-3">
+                    <div class="card-body">
+                        <h5 class="card-title text-muted text-uppercase" style="font-size: 0.85rem; letter-spacing: 0.05em;">🔧 Em Manutenção</h5>
+                        <p class="card-text" style="font-size: 2.5rem;">@emManutencao</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card text-white bg-dark mb-3">
+                    <div class="card-body">
+                        <h5 class="card-title text-muted text-uppercase" style="font-size: 0.85rem; letter-spacing: 0.05em;">Resumo Operacional</h5>
+                        <div class="d-flex justify-content-between p-3 border border-secondary rounded mb-3">
+                            <span>Total de Clientes</span>
+                            <span class="fs-4 fw-bold text-success">@totalClientes</span>
+                        </div>
+                        <div class="d-flex justify-content-between p-3 border border-secondary rounded">
+                            <span>Contratos Ativos</span>
+                            <span class="fs-4 fw-bold text-primary">@contratosAtivos</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    private List<TratorDto> tratores = new();
+    private int operacionais;
+    private int alugados;
+    private int emManutencao;
+    private int totalClientes;
+    private int contratosAtivos;
+    private bool carregando = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var tratoresData = await Http.GetFromJsonAsync<List<TratorDto>>("api/tratores/dashboard");
+            if (tratoresData != null)
+            {
+                tratores = tratoresData;
+                operacionais = tratores.Count(t => t.Status == "Operacional");
+                alugados = tratores.Count(t => t.Status == "Alugado");
+                emManutencao = tratores.Count(t => t.Status == "EmManutencao");
+            }
+
+            // Simulando a contagem vinda da API
+            var clientes = await Http.GetFromJsonAsync<List<object>>("api/clientes");
+            if (clientes != null) totalClientes = clientes.Count;
+
+            var contratos = await Http.GetFromJsonAsync<List<dynamic>>("api/contratos");
+            if (contratos != null) contratosAtivos = contratos.Count; // Simplificado para exemplo
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Erro ao carregar dashboard: {ex.Message}");
+        }
+        finally
+        {
+            carregando = false;
+        }
+    }
+}

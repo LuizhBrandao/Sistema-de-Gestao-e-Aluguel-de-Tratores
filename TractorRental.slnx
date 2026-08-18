@@ -10,6 +10,7 @@
   <Project Path="src/TractorRental.Telemetria.Infrastructure/TractorRental.Telemetria.Infrastructure.csproj" />
   <Folder Name="/src/">
     <Project Path="src/TractorRental.AppHost/TractorRental.AppHost.csproj" />
+    <Project Path="src/TractorRental.BlazorFrontend/TractorRental.BlazorFrontend.csproj" />
     <Project Path="src/TractorRental.ServiceDefaults/TractorRental.ServiceDefaults.csproj" />
   </Folder>
   <Project Path="src/TractorRental.Api/TractorRental.Api.csproj" />
