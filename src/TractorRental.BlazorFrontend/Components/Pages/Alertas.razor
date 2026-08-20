@@ -114,6 +114,10 @@
                 .WithAutomaticReconnect()
                 .Build();
 
+            hubConnection.Reconnecting += _ => { InvokeAsync(StateHasChanged); return Task.CompletedTask; };
+            hubConnection.Reconnected += _ => { InvokeAsync(StateHasChanged); return Task.CompletedTask; };
+            hubConnection.Closed += _ => { InvokeAsync(StateHasChanged); return Task.CompletedTask; };
+
             hubConnection.On<dynamic>("ReceberAlerta", alertaDin =>
             {
                 try
@@ -139,10 +143,12 @@
             });
 
             await hubConnection.StartAsync();
+            StateHasChanged();
         }
         catch (Exception ex)
         {
             Console.WriteLine($"Erro ao conectar ao SignalR Hub: {ex.Message}");
+            StateHasChanged();
         }
     }
 

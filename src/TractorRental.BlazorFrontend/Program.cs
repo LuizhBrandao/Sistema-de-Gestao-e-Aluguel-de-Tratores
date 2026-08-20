@@ -10,7 +10,13 @@ builder.Services.AddRazorComponents()
 
 builder.Services.AddHttpClient("api", client =>
 {
-    client.BaseAddress = new Uri("http://api");
+    var apiUri = builder.Configuration["services:api:https:0"] 
+        ?? builder.Configuration["services:api:http:0"] 
+        ?? builder.Configuration["services:api:default:0"] 
+        ?? builder.Configuration["ApiBaseUrl"] 
+        ?? "http://localhost:5257";
+
+    client.BaseAddress = new Uri(apiUri.EndsWith('/') ? apiUri : apiUri + "/");
 });
 builder.Services.AddScoped(sp => sp.GetRequiredService<IHttpClientFactory>().CreateClient("api"));
 
