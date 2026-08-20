@@ -41,12 +41,26 @@ public class ClienteDto
     public string EnderecoCidade { get; set; } = string.Empty;
     public string EnderecoEstado { get; set; } = string.Empty;
 
-    public string TipoDescricao => DocumentoTipo?.ToString() switch
+    public string TipoDescricao
     {
-        "1" or "Fisica" or "PessoaFisica" => "Pessoa Física",
-        "2" or "Juridica" or "PessoaJuridica" => "Pessoa Jurídica",
-        _ => DocumentoTipo?.ToString() ?? "Pessoa Jurídica"
-    };
+        get
+        {
+            var tipoStr = DocumentoTipo?.ToString();
+            if (tipoStr == "0" || string.Equals(tipoStr, "Fisica", StringComparison.OrdinalIgnoreCase) || string.Equals(tipoStr, "PessoaFisica", StringComparison.OrdinalIgnoreCase))
+                return "Pessoa Física";
+            if (tipoStr == "1" || string.Equals(tipoStr, "Juridica", StringComparison.OrdinalIgnoreCase) || string.Equals(tipoStr, "PessoaJuridica", StringComparison.OrdinalIgnoreCase))
+                return "Pessoa Jurídica";
+
+            // Fallback por formato/tamanho do documento
+            var apenasDigitos = new string(DocumentoNumero?.Where(char.IsDigit).ToArray() ?? Array.Empty<char>());
+            if (apenasDigitos.Length == 14 || (DocumentoNumero?.Contains('/') ?? false))
+                return "Pessoa Jurídica";
+            if (apenasDigitos.Length == 11)
+                return "Pessoa Física";
+
+            return "Pessoa Jurídica";
+        }
+    }
 }
 
 public class CadastroClienteForm
@@ -73,12 +87,21 @@ public class ContratoDto
     public decimal ValorHora { get; set; }
     public object? Status { get; set; }
 
-    public string StatusFormatado => Status?.ToString() switch
+    public string StatusFormatado
     {
-        "1" or "Ativo" => "Ativo",
-        "2" or "Finalizado" => "Finalizado",
-        _ => Status?.ToString() ?? "Ativo"
-    };
+        get
+        {
+            var statusStr = Status?.ToString();
+            if (statusStr == "0" || string.Equals(statusStr, "Ativo", StringComparison.OrdinalIgnoreCase))
+                return "Ativo";
+            if (statusStr == "1" || string.Equals(statusStr, "Finalizado", StringComparison.OrdinalIgnoreCase))
+                return "Finalizado";
+            if (statusStr == "2" || string.Equals(statusStr, "Cancelado", StringComparison.OrdinalIgnoreCase))
+                return "Cancelado";
+
+            return statusStr ?? "Ativo";
+        }
+    }
 }
 
 public class CadastroContratoForm

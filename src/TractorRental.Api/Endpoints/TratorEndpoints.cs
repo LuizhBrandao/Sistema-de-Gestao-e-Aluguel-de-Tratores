@@ -75,6 +75,20 @@ public static class TratorEndpoints
             return Results.Ok(new { Mensagem = "Telemetria processada e eventos disparados com sucesso." });
         })
         .WithSummary("Recebe carga de dados dos sensores IoT do equipamento");
+
+        // 5. Liberar Trator da Manutenção (BC: Frota)
+        group.MapPost("/{id:guid}/liberar-manutencao", async (Guid id, ITratorRepository repository) =>
+        {
+            var trator = await repository.ObterPorIdAsync(id, CancellationToken.None);
+            if (trator is null)
+                return Results.NotFound(new { Mensagem = "Trator não encontrado." });
+
+            trator.LiberarManutencao();
+            await repository.AtualizarAsync(trator, CancellationToken.None);
+
+            return Results.Ok(new { Mensagem = "Equipamento liberado da manutenção com sucesso e pronto para operação." });
+        })
+        .WithSummary("Libera o equipamento da manutenção e retorna o status para Operacional");
     }
 }
 

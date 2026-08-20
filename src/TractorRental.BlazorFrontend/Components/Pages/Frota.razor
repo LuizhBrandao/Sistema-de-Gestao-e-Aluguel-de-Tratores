@@ -8,7 +8,7 @@
     <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
         <div>
             <h1 class="h3 mb-1">Frota de Equipamentos</h1>
-            <p class="text-muted mb-0">Gerenciamento, telemetria em tempo real e cadastro de tratores</p>
+            <p class="text-white mb-0">Gerenciamento, telemetria em tempo real e cadastro de tratores</p>
         </div>
         <div class="d-flex gap-2">
             <button class="btn btn-secondary-agro" @onclick="CarregarTratores" disabled="@carregando">
@@ -25,7 +25,7 @@
     <div class="row g-2 mb-4">
         <div class="col-md-6 col-lg-4">
             <div class="input-group">
-                <span class="input-group-text bg-dark border-secondary text-muted"><i class="bi bi-search"></i></span>
+                <span class="input-group-text bg-dark border-secondary text-white"><i class="bi bi-search"></i></span>
                 <input type="text" class="form-control" placeholder="Buscar por marca, modelo ou ID..." @bind="termoBusca" @bind:event="oninput" />
             </div>
         </div>
@@ -45,7 +45,7 @@
             <div class="spinner-border text-success" role="status">
                 <span class="visually-hidden">Carregando...</span>
             </div>
-            <p class="text-muted mt-3">Carregando frota...</p>
+            <p class="text-white mt-3">Carregando frota...</p>
         </div>
     }
     else
@@ -61,13 +61,14 @@
                             <th>Temperatura</th>
                             <th>Pressão Pneus</th>
                             <th>RPM / Velocidade</th>
+                            <th class="text-end">Ações</th>
                         </tr>
                     </thead>
                     <tbody>
                         @if (!TratoresFiltrados.Any())
                         {
                             <tr>
-                                <td colspan="6" class="text-center text-muted py-5">
+                                <td colspan="7" class="text-center text-white py-5">
                                     <i class="bi bi-inbox fs-2 d-block mb-2"></i>
                                     Nenhum trator encontrado com os filtros aplicados.
                                 </td>
@@ -83,16 +84,16 @@
                                             <span class="fs-4">🚜</span>
                                             <div>
                                                 <div class="fw-bold text-white">@t.Marca @t.Modelo</div>
-                                                <div class="text-muted small">UUID: @t.Id.ToString()</div>
+                                                <div class="text-white small">UUID: @t.Id.ToString()</div>
                                             </div>
                                         </div>
                                     </td>
                                     <td>
-                                        @if (t.Status == "Operacional")
+                                        @if (t.Status == "Operacional" || t.Status == "0")
                                         {
                                             <span class="app-badge badge-success"><i class="bi bi-check-circle-fill"></i> Operacional</span>
                                         }
-                                        else if (t.Status == "Alugado")
+                                        else if (t.Status == "Alugado" || t.Status == "1")
                                         {
                                             <span class="app-badge badge-info"><i class="bi bi-clock-history"></i> Alugado</span>
                                         }
@@ -125,7 +126,27 @@
                                     </td>
                                     <td>
                                         <div class="text-white">@t.RotacaoMotor.ToString("F0") RPM</div>
-                                        <div class="text-muted small">@t.Velocidade.ToString("F1") km/h</div>
+                                        <div class="text-white small">@t.Velocidade.ToString("F1") km/h</div>
+                                    </td>
+                                    <td class="text-end">
+                                        @if (t.Status == "EmManutencao" || t.Status == "2")
+                                        {
+                                            <button class="btn btn-sm btn-outline-success d-inline-flex align-items-center gap-1" 
+                                                    @onclick="() => LiberarManutencao(t.Id)" 
+                                                    disabled="@processandoLiberacao.Contains(t.Id)" 
+                                                    title="Liberar equipamento da manutenção e voltar ao status Operacional">
+                                                @if (processandoLiberacao.Contains(t.Id))
+                                                {
+                                                    <span class="spinner-border spinner-border-sm"></span>
+                                                    <span>Liberando...</span>
+                                                }
+                                                else
+                                                {
+                                                    <i class="bi bi-check-circle-fill"></i>
+                                                    <span>Liberar Manutenção</span>
+                                                }
+                                            </button>
+                                        }
                                     </td>
                                 </tr>
                             }
@@ -165,7 +186,18 @@
                         <div class="row g-3">
                             <div class="col-md-6">
                                 <label class="form-label">Marca *</label>
-                                <input class="form-control" placeholder="Ex: John Deere, Valtra, Massey" @bind="form.Marca" />
+                                <select class="form-select" @bind="form.Marca">
+                                    <option value="">-- Selecione a Marca --</option>
+                                    <option value="John Deere">John Deere</option>
+                                    <option value="Massey Ferguson">Massey Ferguson</option>
+                                    <option value="Valtra">Valtra</option>
+                                    <option value="New Holland">New Holland</option>
+                                    <option value="Case IH">Case IH</option>
+                                    <option value="Agrale">Agrale</option>
+                                    <option value="Caterpillar">Caterpillar</option>
+                                    <option value="Kubota">Kubota</option>
+                                    <option value="Outra">Outra</option>
+                                </select>
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label">Modelo *</label>
@@ -220,6 +252,7 @@
     private string termoBusca = "";
     private string filtroStatus = "";
     private CadastroTratorForm form = new();
+    private HashSet<Guid> processandoLiberacao = new();
 
     private IEnumerable<TratorDto> TratoresFiltrados =>
         tratores.Where(t =>
@@ -311,6 +344,27 @@
         finally
         {
             enviando = false;
+        }
+    }
+
+    private async Task LiberarManutencao(Guid tratorId)
+    {
+        processandoLiberacao.Add(tratorId);
+        try
+        {
+            var response = await Http.PostAsync($"api/tratores/{tratorId}/liberar-manutencao", null);
+            if (response.IsSuccessStatusCode)
+            {
+                await CarregarTratores();
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Erro ao liberar trator da manutenção: {ex.Message}");
+        }
+        finally
+        {
+            processandoLiberacao.Remove(tratorId);
         }
     }
 }

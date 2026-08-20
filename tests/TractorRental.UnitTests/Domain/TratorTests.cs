@@ -28,6 +28,27 @@ public class TratorTests
         trator.Status.Should().Be(StatusTrator.Operacional);
     }
 
+    [Theory]
+    [InlineData("John Deere", MarcaTrator.JohnDeere)]
+    [InlineData("john deere", MarcaTrator.JohnDeere)]
+    [InlineData("Massey Ferguson", MarcaTrator.MasseyFerguson)]
+    [InlineData("Massey", MarcaTrator.MasseyFerguson)]
+    [InlineData("New Holland", MarcaTrator.NewHolland)]
+    [InlineData("Case IH", MarcaTrator.CaseIH)]
+    [InlineData("Case", MarcaTrator.CaseIH)]
+    [InlineData("Valtra", MarcaTrator.Valtra)]
+    [InlineData("Agrale", MarcaTrator.Agrale)]
+    [InlineData("Caterpillar", MarcaTrator.Caterpillar)]
+    [InlineData("Kubota", MarcaTrator.Kubota)]
+    public void CriarTrator_ComMarcaComEspacoOuVariacao_DeveNormalizarComSucesso(string marcaInput, MarcaTrator marcaEsperada)
+    {
+        // Act
+        var trator = new Trator(Guid.NewGuid(), marcaInput, "Modelo X", 2023, 200, 50, "PIN-TEST-001");
+
+        // Assert
+        trator.Marca.Should().Be(marcaEsperada);
+    }
+
     [Fact]
     public void CriarTrator_ComModeloVazio_DeveLancarException()
     {
@@ -116,5 +137,20 @@ public class TratorTests
         domainEvent.Should().NotBeNull();
         domainEvent!.Motivo.Should().Be("Motor superaquecido");
         domainEvent.Criticidade.Should().Be("ALTA");
+    }
+
+    [Fact]
+    public void LiberarManutencao_QuandoEmManutencao_DeveAlterarStatusParaOperacional()
+    {
+        // Arrange
+        var trator = CriarTratorValido("8R 370", MarcaTrator.JohnDeere);
+        trator.RegistrarAlertaManutencao("Alta temperatura");
+        trator.Status.Should().Be(StatusTrator.EmManutencao);
+
+        // Act
+        trator.LiberarManutencao();
+
+        // Assert
+        trator.Status.Should().Be(StatusTrator.Operacional);
     }
 }

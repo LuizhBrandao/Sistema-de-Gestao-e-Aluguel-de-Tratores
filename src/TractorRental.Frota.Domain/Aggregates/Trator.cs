@@ -29,9 +29,7 @@ public class Trator
                   int potenciaCv, double horimetroInicial, string numeroSerie)
     {
         Id = id;
-        Marca = Enum.TryParse<MarcaTrator>(marca, true, out var parsedMarca) 
-            ? parsedMarca 
-            : throw new ArgumentException($"Marca inválida: '{marca}'. Valores aceitos: {string.Join(", ", Enum.GetNames<MarcaTrator>())}");
+        Marca = ParseMarca(marca);
         Modelo = !string.IsNullOrWhiteSpace(modelo)
             ? modelo
             : throw new ArgumentException("Modelo é obrigatório.", nameof(modelo));
@@ -64,6 +62,12 @@ public class Trator
             Status = StatusTrator.Operacional;
     }
 
+    public void LiberarManutencao()
+    {
+        if (Status == StatusTrator.EmManutencao)
+            Status = StatusTrator.Operacional;
+    }
+
     /// <summary>
     /// Atualiza os valores de sensor cacheados no agregado.
     /// Chamado pelo BC de Frota ao receber TelemetriaProcessadaIntegrationEvent.
@@ -88,4 +92,28 @@ public class Trator
     }
 
     public void LimparEventos() => _domainEvents.Clear();
+
+    private static MarcaTrator ParseMarca(string marca)
+    {
+        if (string.IsNullOrWhiteSpace(marca))
+            throw new ArgumentException("Marca é obrigatória.", nameof(marca));
+
+        var normalized = marca.Replace(" ", "").Replace("-", "").Replace("_", "").Trim();
+
+        if (Enum.TryParse<MarcaTrator>(normalized, true, out var parsedMarca))
+            return parsedMarca;
+
+        if (normalized.Equals("Massey", StringComparison.OrdinalIgnoreCase))
+            return MarcaTrator.MasseyFerguson;
+        if (normalized.Equals("Case", StringComparison.OrdinalIgnoreCase))
+            return MarcaTrator.CaseIH;
+        if (normalized.Equals("CAT", StringComparison.OrdinalIgnoreCase))
+            return MarcaTrator.Caterpillar;
+        if (normalized.Equals("JD", StringComparison.OrdinalIgnoreCase))
+            return MarcaTrator.JohnDeere;
+        if (normalized.Equals("NH", StringComparison.OrdinalIgnoreCase))
+            return MarcaTrator.NewHolland;
+
+        throw new ArgumentException($"Marca inválida: '{marca}'. Valores aceitos: John Deere, Massey Ferguson, Valtra, New Holland, Case IH, Agrale, Caterpillar, Kubota, Outra");
+    }
 }

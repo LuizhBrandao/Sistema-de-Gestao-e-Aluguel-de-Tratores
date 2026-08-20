@@ -1,9 +1,11 @@
 var builder = DistributedApplication.CreateBuilder(args);
 
 var rabbitmq = builder.AddRabbitMQ("rabbitmq")
-                      .WithManagementPlugin();
+                      .WithManagementPlugin()
+                      .WithDataVolume();
 
 var sql = builder.AddSqlServer("sqlserver")
+                 .WithDataVolume()
                  .AddDatabase("DefaultConnection");
 
 var api = builder.AddProject<Projects.TractorRental_Api>("api")

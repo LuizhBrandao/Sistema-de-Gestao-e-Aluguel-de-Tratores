@@ -14,7 +14,7 @@ public class SensorSimulatorWorker(
 
         while (!stoppingToken.IsCancellationRequested)
         {
-            await Task.Delay(5000, stoppingToken);
+            await Task.Delay(10000, stoppingToken);
 
             try
             {
@@ -22,25 +22,39 @@ public class SensorSimulatorWorker(
                 var dbContext = scope.ServiceProvider.GetRequiredService<FrotaDbContext>();
                 var bus = scope.ServiceProvider.GetRequiredService<IBus>();
 
-                var trator = dbContext.Tratores.FirstOrDefault();
+                var tratores = dbContext.Tratores.ToList();
 
-                if (trator is not null)
+                foreach (var trator in tratores)
                 {
                     var random = new Random();
+                    // Chance baixa de anomalia crítica (~4%)
+                    bool simularPicoCritico = random.Next(1, 100) <= 4;
+
+                    double temp = simularPicoCritico && random.Next(2) == 0
+                        ? 111.0 + (random.NextDouble() * 5.0)  // Superaquecimento > 110°C
+                        : 82.0 + (random.NextDouble() * 15.0); // Normal: 82°C a 97°C
+
+                    double pressao = simularPicoCritico && random.Next(2) == 0
+                        ? 22.0 + (random.NextDouble() * 3.5)  // Pressão baixa < 26 PSI
+                        : 29.0 + (random.NextDouble() * 5.0);  // Normal: 29 a 34 PSI
+
+                    double oleo = simularPicoCritico && random.Next(2) == 0
+                        ? 8.0 + (random.NextDouble() * 6.0)   // Óleo baixo < 15%
+                        : 70.0 + (random.NextDouble() * 25.0); // Normal: 70% a 95%
 
                     var telemetria = new TelemetriaMessage(
-                    trator.Id,
-                    80.0 + (random.NextDouble() * 35.0),
-                    25.0 + (random.NextDouble() * 10.0),
-                    random.Next(5, 100),
-                    10.0 + (random.NextDouble() * 90.0),
-                    random.Next(800, 4000),
-                    random.Next(0, 40)
-);
+                        trator.Id,
+                        temp,
+                        pressao,
+                        random.Next(25, 100),
+                        oleo,
+                        random.Next(1200, 2400),
+                        random.Next(5, 30)
+                    );
 
-                    await bus.Publish(telemetria);
+                    await bus.Publish(telemetria, stoppingToken);
 
-                    logger.LogInformation("📡 Telemetria enviada para o Trator {TratorId} | Temp: {Temp:F1}ºC", trator.Id, telemetria.TemperaturaMotor);
+                    logger.LogInformation("📡 Telemetria enviada para o Trator {TratorId} | Temp: {Temp:F1}ºC | Óleo: {Oleo:F1}%", trator.Id, telemetria.TemperaturaMotor, telemetria.NivelOleo);
                 }
             }
             catch (Exception ex)

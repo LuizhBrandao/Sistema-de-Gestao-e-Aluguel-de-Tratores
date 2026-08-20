@@ -21,7 +21,7 @@ public class Worker(
 
         while (!stoppingToken.IsCancellationRequested)
         {
-            await Task.Delay(5000, stoppingToken);
+            await Task.Delay(10000, stoppingToken);
 
             try
             {
@@ -34,15 +34,28 @@ public class Worker(
                 foreach(var trator in tratores)
                 {
                     var random = new Random();
+                    bool simularPicoCritico = random.Next(1, 100) <= 4;
+
+                    double temp = simularPicoCritico && random.Next(2) == 0
+                        ? 111.0 + (random.NextDouble() * 5.0)
+                        : 82.0 + (random.NextDouble() * 15.0);
+
+                    double pressao = simularPicoCritico && random.Next(2) == 0
+                        ? 22.0 + (random.NextDouble() * 3.5)
+                        : 29.0 + (random.NextDouble() * 5.0);
+
+                    double oleo = simularPicoCritico && random.Next(2) == 0
+                        ? 8.0 + (random.NextDouble() * 6.0)
+                        : 70.0 + (random.NextDouble() * 25.0);
 
                     var telemetria = new TelemetriaMessage(
                         trator.Id,
-                        80.0 + (random.NextDouble() * 40.0),
-                        30.0 + (random.NextDouble() * 5.0),
-                        random.Next(10, 100),
-                        10.0 + (random.NextDouble() * 90.0),
-                        random.Next(800, 4000),
-                        random.Next(0, 40)
+                        temp,
+                        pressao,
+                        random.Next(25, 100),
+                        oleo,
+                        random.Next(1200, 2400),
+                        random.Next(5, 30)
                     );
 
                     await bus.Publish(telemetria, stoppingToken);

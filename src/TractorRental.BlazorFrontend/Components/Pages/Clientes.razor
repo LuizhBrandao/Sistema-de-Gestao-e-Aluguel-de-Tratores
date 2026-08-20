@@ -8,7 +8,7 @@
     <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
         <div>
             <h1 class="h3 mb-1">Gestão de Clientes</h1>
-            <p class="text-muted mb-0">Cadastro, consulta e contatos operacionais dos produtores rurais e locatários</p>
+            <p class="text-white mb-0">Cadastro, consulta e contatos operacionais dos produtores rurais e locatários</p>
         </div>
         <div class="d-flex gap-2">
             <button class="btn btn-secondary-agro" @onclick="CarregarClientes" disabled="@carregando">
@@ -25,7 +25,7 @@
     <div class="row g-2 mb-4">
         <div class="col-md-6 col-lg-4">
             <div class="input-group">
-                <span class="input-group-text bg-dark border-secondary text-muted"><i class="bi bi-search"></i></span>
+                <span class="input-group-text bg-dark border-secondary text-white"><i class="bi bi-search"></i></span>
                 <input type="text" class="form-control" placeholder="Buscar por nome, documento ou cidade..." @bind="termoBusca" @bind:event="oninput" />
             </div>
         </div>
@@ -37,7 +37,7 @@
             <div class="spinner-border text-success" role="status">
                 <span class="visually-hidden">Carregando...</span>
             </div>
-            <p class="text-muted mt-3">Carregando carteira de clientes...</p>
+            <p class="text-white mt-3">Carregando carteira de clientes...</p>
         </div>
     }
     else
@@ -58,7 +58,7 @@
                         @if (!ClientesFiltrados.Any())
                         {
                             <tr>
-                                <td colspan="5" class="text-center text-muted py-5">
+                                <td colspan="5" class="text-center text-white py-5">
                                     <i class="bi bi-people fs-2 d-block mb-2"></i>
                                     Nenhum cliente encontrado.
                                 </td>
@@ -73,7 +73,7 @@
                                         <div class="fw-bold text-white">@c.RazaoSocialOuNome</div>
                                         @if (!string.IsNullOrEmpty(c.InscricaoEstadual))
                                         {
-                                            <div class="text-muted small">IE: @c.InscricaoEstadual</div>
+                                            <div class="text-white small">IE: @c.InscricaoEstadual</div>
                                         }
                                     </td>
                                     <td>
@@ -82,14 +82,14 @@
                                     </td>
                                     <td>
                                         <div class="text-white">@c.ContatoNome</div>
-                                        <div class="text-muted small"><i class="bi bi-telephone me-1"></i>@c.ContatoTelefone</div>
+                                        <div class="text-white small"><i class="bi bi-telephone me-1"></i>@c.ContatoTelefone</div>
                                     </td>
                                     <td>
-                                        <span class="text-muted">@c.EmailFaturamento</span>
+                                        <span class="text-white">@c.EmailFaturamento</span>
                                     </td>
                                     <td>
                                         <div class="text-white">@c.EnderecoCidade - @c.EnderecoEstado</div>
-                                        <div class="text-muted small">@c.EnderecoLogradouro</div>
+                                        <div class="text-white small">@c.EnderecoLogradouro</div>
                                     </td>
                                 </tr>
                             }

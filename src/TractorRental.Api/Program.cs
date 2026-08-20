@@ -28,7 +28,8 @@ builder.Services.AddScoped<ITratorLocacaoAcl, TratorLocacaoAcl>();
 // MediatR: Registra handlers de TODOS os BCs
 builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssemblies(
     typeof(TractorRental.Telemetria.Application.Commands.RegistrarTelemetriaCommand).Assembly,
-    typeof(TractorRental.Frota.Application.Policies.AtualizarTelemetriaPolicy).Assembly
+    typeof(TractorRental.Frota.Application.Policies.AtualizarTelemetriaPolicy).Assembly,
+    typeof(TractorRental.Locacao.Application.Commands.CriarContratoCommand).Assembly
 ));
 
 // CORS Configuration
